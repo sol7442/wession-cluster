@@ -1,0 +1,4 @@
+rootProject.name = 'wession-cluster'
+//include "wow_server","wow_client","wow_daemon,wow-util"
+include "wsc_core","wsc_server","wsc_agent"
+include "wsc_cluster"

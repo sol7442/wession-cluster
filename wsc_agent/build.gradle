@@ -1,0 +1,4 @@
+dependencies {
+	compile project(':wsc_core')
+}
+
