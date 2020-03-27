@@ -1,0 +1,42 @@
+{
+  "name": "test2",
+  "conf1": {
+    "confClass": "test.util.config.TestConfiguration1",
+    "confValue": {
+      "name": "test1",
+      "value": "value1"
+    }
+  },
+  "configMap": {
+    "test1": {
+      "confClass": "test.util.config.TestConfiguration1",
+      "confValue": {
+        "name": "test1",
+        "value": "value1"
+      }
+    },
+    "test11": {
+      "confClass": "test.util.config.TestConfiguration1",
+      "confValue": {
+        "name": "test11",
+        "value": "value11"
+      }
+    }
+  },
+  "configSet": [
+    {
+      "confClass": "test.util.config.TestConfiguration1",
+      "confValue": {
+        "name": "test11",
+        "value": "value11"
+      }
+    },
+    {
+      "confClass": "test.util.config.TestConfiguration1",
+      "confValue": {
+        "name": "test1",
+        "value": "value1"
+      }
+    }
+  ]
+}
