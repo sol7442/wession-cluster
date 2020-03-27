@@ -1,5 +1,8 @@
 package com.wowsanta.server;
 
-public interface Service {
+
+public interface Service<T> {
+
+	void regist(T t);
 
 }

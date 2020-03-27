@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.wowsanta.server.Service;
 
-public class ServiceList extends ArrayList<Service> {
+public class ServiceList<T> extends ArrayList<Service<T>> {
 	private static final long serialVersionUID = 1L;
 	
 	private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -16,7 +16,7 @@ public class ServiceList extends ArrayList<Service> {
     
 	private int idx_cur;
 	
-	public boolean add(Service service) {
+	public boolean add(Service<T> service) {
 		writeLock.lock();
 		try {
 			return super.add(service);	
@@ -24,7 +24,7 @@ public class ServiceList extends ArrayList<Service> {
 			writeLock.unlock();
 		}
 	}
-	public boolean remove(Service service) {
+	public boolean remove(Service<T> service) {
 		writeLock.lock();
 		try {
 			return super.remove(service);	
@@ -33,7 +33,7 @@ public class ServiceList extends ArrayList<Service> {
 		}
 	}
 	
-	public Service next() {
+	public Service<T> next() {
 		readLock.lock();
 		try {
 			idx_cur++;
