@@ -1,8 +1,8 @@
 package com.wowsanta.server;
 
 
-public interface Service<T> {
+public interface Service<T extends Connection> {
 
-	void regist(T t);
+	void register(T t);
 
 }

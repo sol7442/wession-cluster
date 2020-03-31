@@ -46,6 +46,7 @@ subprojects {
 }
 
 dependencies {
+	compile project(':wsc_server')
 	compile project(':wsc_cluster')
 }
 
