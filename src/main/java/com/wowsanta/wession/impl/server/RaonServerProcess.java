@@ -7,7 +7,9 @@ import java.nio.channels.ClosedChannelException;
 import com.wowsanta.server.nio.NioProcess;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.impl.cmd.HELLO;
+import com.wowsanta.wession.impl.cmd.PS_DELSESSION;
 import com.wowsanta.wession.impl.cmd.PS_REGISTER;
+import com.wowsanta.wession.impl.cmd.PS_SESSIONVALID;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,11 +24,11 @@ public class RaonServerProcess extends NioProcess{
 		this.connection.readBuffer.get(command);
 
 		cmd_proc = create_command_process(ByteBuffer.wrap(command).getInt());
-		cmd_proc.setRequest(this.connection.readBuffer);
+		cmd_proc.request(this.connection.readBuffer);
 	}
 	public void write() {
 		try {
-			this.connection.write(cmd_proc.getResponse());
+			this.connection.write(cmd_proc.response());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -43,9 +45,16 @@ public class RaonServerProcess extends NioProcess{
 		case 1:
 			cmd_proc = new HELLO();
 			break;
+		case 66304:
+			cmd_proc = new PS_DELSESSION();
+			break;
 		case 67072:
 			cmd_proc = new PS_REGISTER();
 			break;
+		case 68096:
+			cmd_proc = new PS_SESSIONVALID();
+			break;
+			
 		default:
 			break;
 		}

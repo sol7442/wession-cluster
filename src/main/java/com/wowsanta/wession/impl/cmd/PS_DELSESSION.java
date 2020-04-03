@@ -13,17 +13,17 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-public class PS_REGISTER extends RaonCommandProcessor {
+public class PS_DELSESSION extends RaonCommandProcessor {
 	
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Request extends AbstratRequest{
-		RaonCommand command = RaonCommand.CMD_PS_REGISTER;
-		int option;
+		RaonCommand command = RaonCommand.CMD_PS_DELSESSION;
+		byte[] sessionIdx = new byte[4];
 		String userId;
 		
 		Request(ByteBuffer buffer){
-			option = buffer.getInt();
+			buffer.get(sessionIdx);
 			userId = readStr(buffer);
 		}
 	}
@@ -31,33 +31,16 @@ public class PS_REGISTER extends RaonCommandProcessor {
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Response extends AbstratResponse{
-		RaonCommand command = RaonCommand.CMD_PS_REGISTER;
-		int lot;
-		byte[] prefix = new byte[4];//{0x00,0x65,0x00,0x34};//
-		byte[] option = new byte[4];
-		byte[] token_key = new byte[8];
-		byte[] random_key = new byte[8];
+		RaonCommand command = RaonCommand.CMD_PS_DELSESSION;
 		
 		@Override
 		byte[] reponse() {
-			RSTR random_str = new RSTR((byte) 0x00,Hex.toHexString(random_key));
-			RSTR token_str = new RSTR((byte) 0x01,Hex.toHexString(token_key));
-			
-			int data_len = 16 + token_str.data_len + random_str.data_len;
-			log.debug("random_key : {}, {} ", Hex.toHexString(random_key),Hex.toHexString(random_key).length() );
-			log.debug("data_len : {} m {} m {} p {}", data_len, token_str.data_len, token_str.length, token_str.padding);
-			
+			int data_len = 4;
 			ByteBuffer buffer = ByteBuffer.allocate(data_len);
 			buffer.putInt(command.getValue());
-			buffer.putInt(lot);
-			buffer.put(prefix);
-			buffer.put(option);
-			random_str.write(buffer);
-			token_str.write(buffer);
 			
 			byte[] data = buffer.array();
-			
-			log.debug("register.response : {} ", Hex.toHexString(data));
+			log.debug("delete.response : {} ", Hex.toHexString(data));
 			return data;
 		}
 	}
@@ -71,16 +54,7 @@ public class PS_REGISTER extends RaonCommandProcessor {
 		try {
 			log.debug("request : {}",request);
 			
-			response.lot = (int)System.currentTimeMillis();
-			response.prefix[1] = 65;
-			response.prefix[3] = 34;
-			
-			response.option[1] = 0x03;
-			new Random().nextBytes(response.token_key);
-			new Random().nextBytes(response.random_key);
-			
 			log.debug("response : {}",response);
-			
 		}catch (Exception e) {
 			e.printStackTrace();
 		}

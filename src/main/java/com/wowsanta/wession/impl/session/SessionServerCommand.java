@@ -2,6 +2,8 @@ package com.wowsanta.wession.impl.session;
 
 public class SessionServerCommand
 {
+	
+	public static final byte[]	CMD_UNKNOWN			 = {0x0,0x0,0x0,0x0};
 	public static final byte[]	CMD_HELLO			 = {0x0,0x0,0x0,0x1};
 	public static final byte[]	CMD_ERROR			 = {0x0,0x0,0x0,0x2};
 	public static final byte[]	CMD_INFOREQ			 = {0x0,0x0,0x0,0x3};

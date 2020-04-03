@@ -129,6 +129,7 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 			if (size == -1) {
 				log.info(" Connection closed by client : {}", connection.client.socket().getRemoteSocketAddress());
 				connection.close();
+				return;
 			}
 
 			NioProcess porcess = (NioProcess) process_factory.newProcess();
@@ -143,8 +144,6 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 						NioConnection connection = future.get(1000, TimeUnit.SECONDS);
 						long duratorion = System.nanoTime() - start_time;
 						log.debug("porcess : {} - {} ", duratorion, connection);
-
-						//connection.client.register(selector, SelectionKey.OP_WRITE, connection);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					} catch (ExecutionException e) {
@@ -152,15 +151,15 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 					} catch (TimeoutException e) {
 						e.printStackTrace();
 					}
-//					catch (ClosedChannelException e) {
-//						e.printStackTrace();
-//					}
 				}
 			});
 
 		} catch (IOException e) {
 			connection.close();
-			log.debug("receive : ", e.getMessage());
+			log.info(" Connection finished by client : {}", connection.client.socket().getRemoteSocketAddress());
+//			
+//			log.debug("receive : ", e.getMessage());
+//			e.printStackTrace();
 		}
 	}
 

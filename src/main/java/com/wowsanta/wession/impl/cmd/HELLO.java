@@ -4,75 +4,87 @@ import java.nio.ByteBuffer;
 
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.impl.server.RaonCommandProcessor;
+import com.wowsanta.wession.impl.session.RaonCommand;
 import com.wowsanta.wession.impl.session.SessionServerCommand;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-@ToString(exclude= {"readBuffer","writeBuffer"})
-public class HELLO implements RaonCommandProcessor {
-	byte[] command = SessionServerCommand.CMD_HELLO;
-	byte[] byteorder = new byte[4];
-	int productNum;
-	int dataLen;
-	String version;
+public class HELLO extends RaonCommandProcessor {
 	
-	ByteBuffer writeBuffer;
-	ByteBuffer readBuffer;
+	@Data
+	@EqualsAndHashCode(callSuper=false)
+	public class Request extends AbstratRequest{
+		RaonCommand command = RaonCommand.CMD_HELLO;
+		int byteOrder;
+		int productNum;
+		String version;
+		
+		Request(ByteBuffer buffer){
+			byteOrder  = buffer.getInt();
+			productNum = buffer.getInt();
+			int str_len = buffer.getInt();
+			byte[] str_data = new byte[str_len];
+			buffer.get(str_data);
+			version = new String(str_data);
+		}
+	}
 	
-	int length;
+	@Data
+	@EqualsAndHashCode(callSuper=false)
+	public class Response extends AbstratResponse{
+		RaonCommand command = RaonCommand.CMD_HELLO;
+		int byteOrder = 1;
+		int code;
+		String version = "WOWSANTA WESSION - WITH WISEACCESS : b2020.04";
+		
+		@Override
+		byte[] reponse() {
+			STR str = new STR(version);
+			int data_len = 12 + str.length + 1;
+			
+			ByteBuffer buffer = ByteBuffer.allocate(data_len);
+			buffer.putInt(command.getValue());
+			buffer.putInt(byteOrder);
+			buffer.putInt(code);
+			str.write(buffer);
+			
+			byte[] data = buffer.array();
+			
+			log.debug("hellow.response : {} ", Hex.toHexString(data));
+			return data;
+		}
+	}
+	 
+	Request  request;
+	Response response;
 	
 	@Override
 	public boolean process() {
 		try {
-			request();
-			log.debug("request : {}",this);
+			log.debug("request : {}", request);
+			log.info("byte odre {} ", request.byteOrder == 1 ? "BIG_ENDIAN" : "LITTLE_ENDIAN") ;
+			response.code = 0;
+			log.debug("response : {}", response);
 			
-			response();
-//			this.writeBuffer.flip();
-//			log.debug("response : {}",Hex.toHexString(this.writeBuffer.array()));
-//			this.writeBuffer.flip();
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
 		return false;
 	}
 
-	private void response() {
-		this.writeBuffer.put(SessionServerCommand.CMD_HELLO); 	// 4
-		this.writeBuffer.put(byteorder);						// 4
-		this.writeBuffer.putInt(0);								// 4
-		this.writeBuffer.putInt(version.length());				// 4
-		this.writeBuffer.put(version.getBytes());				// 25
-		
-		length = 4 + 4 + 4 + 4 + version.length();}
-
-	private void request() {
-		this.readBuffer.get(byteorder);
-		productNum = this.readBuffer.getInt();
-		dataLen = this.readBuffer.getInt();
-		byte[] data = new byte[dataLen];
-		this.readBuffer.get(data, 0, dataLen);
-		version = new String(data);
+	@Override
+	public void request(ByteBuffer readBuffer) {
+		request  = new Request(readBuffer);
+		response = new Response(); 
 	}
 
 	@Override
-	public void setRequest(ByteBuffer readBuffer) {
-		this.readBuffer  = readBuffer;
-		this.writeBuffer = ByteBuffer.allocate(1024); 
+	public byte[] response() {
+		return response.reponse();
 	}
-
-	@Override
-	public byte[] getResponse() {
-		byte[] buffer = new byte[length+1];
-		this.writeBuffer.flip();
-		this.writeBuffer.get(buffer,0,length);
-		this.writeBuffer.clear();
-		log.debug("response : {}",Hex.toHexString(buffer));
-		return buffer;
-	}
-
 }
