@@ -86,8 +86,6 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 						SelectionKey key = keys.next();
 						keys.remove();
 
-						log.debug("ready opt : {} ", key.readyOps());
-
 						if (!key.isValid())
 							continue;
 
@@ -139,17 +137,20 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 			service_excutor.execute(new Runnable() {
 				@Override
 				public void run() {
+					long duratorion = 0;
+					NioConnection connection = null;
 					try {
-						long start_time = System.nanoTime();
-						NioConnection connection = future.get(1000, TimeUnit.SECONDS);
-						long duratorion = System.nanoTime() - start_time;
-						log.debug("porcess : {} - {} ", duratorion, connection);
+						long start_time = System.currentTimeMillis();
+						connection = future.get(1000, TimeUnit.SECONDS);
+						duratorion = System.currentTimeMillis() - start_time;
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					} catch (ExecutionException e) {
 						e.printStackTrace();
 					} catch (TimeoutException e) {
 						e.printStackTrace();
+					}finally {
+						log.debug("connection : {} / {} ",connection.client,duratorion);
 					}
 				}
 			});
@@ -157,9 +158,6 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 		} catch (IOException e) {
 			connection.close();
 			log.info(" Connection finished by client : {}", connection.client.socket().getRemoteSocketAddress());
-//			
-//			log.debug("receive : ", e.getMessage());
-//			e.printStackTrace();
 		}
 	}
 

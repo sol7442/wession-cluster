@@ -3,6 +3,9 @@ package com.wowsanta.wession.impl.cmd;
 import java.nio.ByteBuffer;
 
 import com.wowsanta.util.Hex;
+import com.wowsanta.wession.impl.data.CMD;
+import com.wowsanta.wession.impl.data.INT;
+import com.wowsanta.wession.impl.data.STR;
 import com.wowsanta.wession.impl.server.RaonCommandProcessor;
 import com.wowsanta.wession.impl.session.RaonCommand;
 import com.wowsanta.wession.impl.session.SessionServerCommand;
@@ -14,49 +17,42 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class HELLO extends RaonCommandProcessor {
-	
+	private static final CMD  command= new CMD(RaonCommand.CMD_HELLO.getValue());
+
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Request extends AbstratRequest{
-		RaonCommand command = RaonCommand.CMD_HELLO;
-		int byteOrder;
-		int productNum;
-		String version;
+		INT byteOrder;
+		INT productNum;
+		STR version;
 		
 		Request(ByteBuffer buffer){
-			byteOrder  = buffer.getInt();
-			productNum = buffer.getInt();
-			int str_len = buffer.getInt();
-			byte[] str_data = new byte[str_len];
-			buffer.get(str_data);
-			version = new String(str_data);
+			byteOrder  = INT.read(buffer);
+			productNum = INT.read(buffer);
+			version    = STR.read(buffer);
 		}
 	}
 	
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Response extends AbstratResponse{
-		RaonCommand command = RaonCommand.CMD_HELLO;
-		int byteOrder = 1;
-		int code;
-		String version = "WOWSANTA WESSION - WITH WISEACCESS : b2020.04";
+		INT byteOrder = new INT(1);
+		INT code;
+		STR version = new STR("WOWSANTA WESSION - WITH WISEACCESS : b2020.04");
 		
 		@Override
 		byte[] reponse() {
-			STR str = new STR(version);
-			int data_len = 12 + str.length + 1;
-			
+			int data_len = command.getLength() + byteOrder.getLength() + code.getLength() + version.getLength();
 			ByteBuffer buffer = ByteBuffer.allocate(data_len);
-			buffer.putInt(command.getValue());
-			buffer.putInt(byteOrder);
-			buffer.putInt(code);
-			str.write(buffer);
+
+			command.write(buffer);
+			byteOrder.write(buffer);
+			code.write(buffer);
+			version.write(buffer);
 			
-			byte[] data = buffer.array();
-			
-			log.debug("hellow.response : {} ", Hex.toHexString(data));
-			return data;
+			return buffer.array();
 		}
 	}
 	 
@@ -67,8 +63,7 @@ public class HELLO extends RaonCommandProcessor {
 	public boolean process() {
 		try {
 			log.debug("request : {}", request);
-			log.info("byte odre {} ", request.byteOrder == 1 ? "BIG_ENDIAN" : "LITTLE_ENDIAN") ;
-			response.code = 0;
+			response.code = new INT(0);
 			log.debug("response : {}", response);
 			
 		}catch (Exception e) {

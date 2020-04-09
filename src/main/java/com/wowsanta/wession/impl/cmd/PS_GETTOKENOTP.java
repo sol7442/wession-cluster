@@ -6,6 +6,9 @@ import java.util.Random;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.impl.data.BYTE4;
 import com.wowsanta.wession.impl.data.CMD;
+import com.wowsanta.wession.impl.data.INT;
+import com.wowsanta.wession.impl.data.RSTR;
+import com.wowsanta.wession.impl.data.RSTRS;
 import com.wowsanta.wession.impl.data.STR;
 import com.wowsanta.wession.impl.server.RaonCommandProcessor;
 import com.wowsanta.wession.impl.session.RaonCommand;
@@ -16,33 +19,37 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-@EqualsAndHashCode(callSuper=true)
-public class PS_DELSESSION extends RaonCommandProcessor {
-	private static final CMD  command= new CMD(RaonCommand.CMD_PS_DELSESSION.getValue());
+@EqualsAndHashCode(callSuper=false)
+public class PS_GETTOKENOTP extends RaonCommandProcessor {
+	private static final CMD  command= new CMD(RaonCommand.CMD_PS_GETTOKENOTP.getValue());
 	
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Request extends AbstratRequest{
+		STR user_id;
+		STR random;
 		BYTE4 session_idx;
-		STR userId;
-		
+		RSTRS  data;
 		
 		Request(ByteBuffer buffer){
-			session_idx = BYTE4.read(buffer);
-			userId = STR.read(buffer);
+			this.user_id     = STR.read(buffer); 
+			this.random      = STR.read(buffer);
+			this.session_idx = BYTE4.read(buffer);
+			this.data        = RSTRS.read(buffer);
 		}
 	}
 	
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Response extends AbstratResponse{
-		
+		RSTRS  data = new RSTRS();
 		@Override
 		byte[] reponse() {
-			int data_len = command.getLength() ;
-			ByteBuffer buffer = ByteBuffer.allocate(data_len);
+			int data_len = command.getLength() + data.getLength();
 			
+			ByteBuffer buffer = ByteBuffer.allocate(data_len);
 			command.write(buffer);
+			data.write(buffer);
 			
 			return buffer.array();
 		}
@@ -57,7 +64,11 @@ public class PS_DELSESSION extends RaonCommandProcessor {
 		try {
 			log.debug("request : {}",request);
 			
+			response.data.add((byte)0x1,"value1"); 
+			response.data.add((byte)0x2,"value2");
+			
 			log.debug("response : {}",response);
+			
 		}catch (Exception e) {
 			e.printStackTrace();
 		}

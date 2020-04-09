@@ -4,6 +4,11 @@ import java.nio.ByteBuffer;
 import java.util.Random;
 
 import com.wowsanta.util.Hex;
+import com.wowsanta.wession.impl.data.BYTE4;
+import com.wowsanta.wession.impl.data.CMD;
+import com.wowsanta.wession.impl.data.INT;
+import com.wowsanta.wession.impl.data.RSTRS;
+import com.wowsanta.wession.impl.data.STR;
 import com.wowsanta.wession.impl.server.RaonCommandProcessor;
 import com.wowsanta.wession.impl.session.RaonCommand;
 
@@ -13,52 +18,41 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class PS_REGISTER extends RaonCommandProcessor {
+	private static final CMD  command= new CMD(RaonCommand.CMD_PS_REGISTER.getValue());
+
 	
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Request extends AbstratRequest{
-		RaonCommand command = RaonCommand.CMD_PS_REGISTER;
-		int option;
-		String userId;
+		INT option;
+		STR userId;
 		
 		Request(ByteBuffer buffer){
-			option = buffer.getInt();
-			userId = readStr(buffer);
+			option = INT.read(buffer);
+			userId = STR.read(buffer);
 		}
 	}
 	
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Response extends AbstratResponse{
-		RaonCommand command = RaonCommand.CMD_PS_REGISTER;
-		int lot;
-		byte[] prefix = new byte[4];//{0x00,0x65,0x00,0x34};//
-		byte[] option = new byte[4];
-		byte[] token_key = new byte[8];
-		byte[] random_key = new byte[8];
+		INT lot;
+		BYTE4 session_idx;
+		RSTRS data = new RSTRS();
 		
 		@Override
 		byte[] reponse() {
-			RSTR random_str = new RSTR((byte) 0x00,Hex.toHexString(random_key));
-			RSTR token_str = new RSTR((byte) 0x01,Hex.toHexString(token_key));
-			
-			int data_len = 16 + token_str.data_len + random_str.data_len;
-			log.debug("random_key : {}, {} ", Hex.toHexString(random_key),Hex.toHexString(random_key).length() );
-			log.debug("data_len : {} m {} m {} p {}", data_len, token_str.data_len, token_str.length, token_str.padding);
-			
+			int data_len = command.getLength() + lot.getLength() + session_idx.getLength() + data.getLength();
 			ByteBuffer buffer = ByteBuffer.allocate(data_len);
-			buffer.putInt(command.getValue());
-			buffer.putInt(lot);
-			buffer.put(prefix);
-			buffer.put(option);
-			random_str.write(buffer);
-			token_str.write(buffer);
+
+			command.write(buffer);
+			lot.write(buffer);
+			session_idx.write(buffer);
+			data.write(buffer);
 			
-			byte[] data = buffer.array();
-			
-			log.debug("register.response : {} ", Hex.toHexString(data));
-			return data;
+			return buffer.array();
 		}
 	}
 	
@@ -71,13 +65,19 @@ public class PS_REGISTER extends RaonCommandProcessor {
 		try {
 			log.debug("request : {}",request);
 			
-			response.lot = (int)System.currentTimeMillis();
-			response.prefix[1] = 65;
-			response.prefix[3] = 34;
+			response.lot = new INT((int)System.currentTimeMillis());
+			byte[] session = {0x0,0x0,0x0,0x0};
+			response.session_idx = new BYTE4(session);
+			response.session_idx.set(1,(byte) 'A');
+			response.session_idx.set(3,(byte)'"');
 			
-			response.option[1] = 0x03;
-			new Random().nextBytes(response.token_key);
-			new Random().nextBytes(response.random_key);
+			byte[] token_key = new byte[8];
+			byte[] random_key = new byte[8];
+			new Random().nextBytes(token_key);
+			new Random().nextBytes(random_key);
+			
+			response.data.add((byte) 0x00,Hex.toHexString(random_key));
+			response.data.add((byte) 0x01,Hex.toHexString(token_key));
 			
 			log.debug("response : {}",response);
 			

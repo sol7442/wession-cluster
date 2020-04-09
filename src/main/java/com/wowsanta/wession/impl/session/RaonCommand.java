@@ -9,6 +9,13 @@ public enum RaonCommand {
 	CMD_HELLO(SessionServerCommand.CMD_HELLO),
 	CMD_ERROR(SessionServerCommand.CMD_ERROR),
 	
+	
+	CMD_PS_ADDUSERDATA(SessionServerCommand.CMD_PS_ADDUSERDATA),
+	CMD_PS_GETUSERDATA(SessionServerCommand.CMD_PS_GETUSERDATA),
+	CMD_PS_DELUSERDATA(SessionServerCommand.CMD_PS_DELUSERDATA),
+	
+	CMD_PS_GETTOKENOTP(SessionServerCommand.CMD_PS_GETTOKENOTP),
+	
 	CMD_PS_REGISTER(SessionServerCommand.CMD_PS_REGISTER),
 	CMD_PS_SESSIONVALID(SessionServerCommand.CMD_PS_SESSIONVALID),
 	CMD_PS_DELSESSION(SessionServerCommand.CMD_PS_DELSESSION)

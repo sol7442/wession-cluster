@@ -6,6 +6,7 @@ import java.util.Random;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.impl.data.BYTE4;
 import com.wowsanta.wession.impl.data.CMD;
+import com.wowsanta.wession.impl.data.INT;
 import com.wowsanta.wession.impl.data.STR;
 import com.wowsanta.wession.impl.server.RaonCommandProcessor;
 import com.wowsanta.wession.impl.session.RaonCommand;
@@ -16,33 +17,35 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-@EqualsAndHashCode(callSuper=true)
-public class PS_DELSESSION extends RaonCommandProcessor {
-	private static final CMD  command= new CMD(RaonCommand.CMD_PS_DELSESSION.getValue());
+@EqualsAndHashCode(callSuper=false)
+public class PS_GETUSERDATA extends RaonCommandProcessor {
+	private static final CMD  command= new CMD(RaonCommand.CMD_PS_GETUSERDATA.getValue());
 	
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Request extends AbstratRequest{
+		STR user_id;
 		BYTE4 session_idx;
-		STR userId;
-		
-		
+
 		Request(ByteBuffer buffer){
-			session_idx = BYTE4.read(buffer);
-			userId = STR.read(buffer);
+			this.user_id     = STR.read(buffer); 
+			this.session_idx = BYTE4.read(buffer);
 		}
 	}
 	
 	@Data
 	@EqualsAndHashCode(callSuper=false)
 	public class Response extends AbstratResponse{
-		
+		INT lot;
+		STR user_data;
 		@Override
 		byte[] reponse() {
-			int data_len = command.getLength() ;
-			ByteBuffer buffer = ByteBuffer.allocate(data_len);
+			int data_len = command.getLength() + lot.getLength() + user_data.getLength();
 			
+			ByteBuffer buffer = ByteBuffer.allocate(data_len);
 			command.write(buffer);
+			lot.write(buffer);
+			user_data.write(buffer);
 			
 			return buffer.array();
 		}
@@ -57,7 +60,11 @@ public class PS_DELSESSION extends RaonCommandProcessor {
 		try {
 			log.debug("request : {}",request);
 			
+			response.lot = new INT((int)System.currentTimeMillis());
+			response.user_data = new STR("아싸라비아 꿍짝꿍짝 --!!----aaaa");
+			
 			log.debug("response : {}",response);
+			
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
