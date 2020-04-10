@@ -51,66 +51,6 @@ public class NioService implements Service <NioConnection>, Runnable{
 	
 	@Override
 	public void run() {
-//		try {
-//			selector = Selector.open();
-//		} catch (IOException e1) {
-//			e1.printStackTrace();
-//		}
-//		log.debug("service start : {} " , this.server);
-		
-		try (
-				Selector selector = Selector.open();
-				
-			){
-			while(true) {
-				int selected = selector.select();
-				Set<SelectionKey> keys = null;
-				try {
-					keys = selector.selectedKeys();
-					
-		            Iterator<SelectionKey> iter = keys.iterator();
-		            while (iter.hasNext()) {
-		            	SelectionKey key = (SelectionKey) iter.next();
-		            	iter.remove();
-		            	if(!key.isValid()) continue;
-		            	
-		            	if(key.isAcceptable()) {
-		            		accept();
-		            	}
-		            	if(key.isReadable()) {
-		            		read()
-		            	}
-		            	if(key.isWritable()) {
-		            		write();
-		            	}
-//		            	
-//		            	if (key.isValid() && key.isReadable()) {
-//		            		NioConnection connection =  (NioConnection) key.attachment();
-//		            		connection.read();
-//		            		
-//		            		NioProcess proces = (NioProcess) process_factory.newProcess();
-//		            		proces.setConnection(connection);
-//		            		
-//		            		prosess_excutor.execute(proces);
-//						}
-////		            	
-//		            	if (key.isValid() && key.isWritable()) { 
-//		            		NioConnection connection = (NioConnection) key.attachment();
-//		            		connection.write();
-//		            		connection.enableRead(this.selector);
-//						}
-		            }
-				}finally {
-				}
-				log.debug("selected >> 2 : {}",selected);
-				
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		finally {
-			log.info("finish server : {}",this );
-		}
 	}
 
 	@Override

@@ -7,8 +7,6 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
-import test.util.config.TestConfiguration1;
-
 public class ConfigurationTypAdapter extends TypeAdapter<JsonConfiguration> {
 
 	private static final String NAME_CLASS = "confClass";

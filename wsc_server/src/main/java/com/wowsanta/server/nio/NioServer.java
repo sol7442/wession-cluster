@@ -2,29 +2,22 @@ package com.wowsanta.server.nio;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.StandardSocketOptions;
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.wowsanta.server.ProcessFactory;
 import com.wowsanta.server.Server;
-import com.wowsanta.server.Service;
 import com.wowsanta.util.config.JsonConfiguration;
 
 import lombok.Data;
@@ -42,8 +35,10 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 	transient ProcessFactory process_factory = new ProcessFactory();
 	transient ExecutorService server_excutor;
 	transient ExecutorService service_excutor;
-	// https://www.programcreek.com/java-api-examples/?code=actiontech%2Fdble%2Fdble-master%2Fsrc%2Fmain%2Fjava%2Fcom%2Factiontech%2Fdble%2Fnet%2FNIOConnector.java#
 
+	Selector selector;
+	ServerSocketChannel serverSocket;
+	
 	@Override
 	public boolean initialize() {
 		server_excutor = Executors.newSingleThreadExecutor();
@@ -51,59 +46,82 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 		try {
 			process_factory.setProcessClass(this.processHandler);
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			log.error("INITIALIZE FAILED : ",e);
 		}
-		return false;
+		return true;
 	}
 
 	@Override
 	public void start() {
+		log.info("SERVER START : {}", new Date());
 		server_excutor.execute(this);
 	}
 
 	@Override
 	public void stop() {
-		service_excutor.shutdown();
+		boolean isTeminated = false;
+		
+		try {
+			serverSocket.close();
+			selector.close();
+			log.debug("close server");
+		} catch (IOException e) {
+			log.error("SERVER CLOSE : ", e);
+		}
+		
 		server_excutor.shutdown();
+		try {
+			isTeminated = server_excutor.awaitTermination(3, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			log.error("shutdown error : {} ",isTeminated, e);
+		}
+		
+		service_excutor.shutdown();
+		try {
+			isTeminated = service_excutor.awaitTermination(3, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			log.error("shutdown error : {} ",isTeminated, e);
+		}
+		
+		log.info("SERVER STOP {} : {}", isTeminated, new Date());
 	}
 
 	@Override
 	public void run() {
-		try (Selector selector = Selector.open()) {
-			try (ServerSocketChannel serverSocket = ServerSocketChannel.open()) {
+		try {
+			selector = Selector.open();
+			serverSocket = ServerSocketChannel.open();		
 
-				serverSocket.configureBlocking(false);
-				serverSocket.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-				serverSocket.setOption(StandardSocketOptions.SO_RCVBUF, 1024 * 16 * 2);
-				serverSocket.bind(new InetSocketAddress("localhost", port));
+			serverSocket.configureBlocking(false);
+			serverSocket.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+			serverSocket.setOption(StandardSocketOptions.SO_RCVBUF, 1024 * 16 * 2);
+			serverSocket.bind(new InetSocketAddress("localhost", port));
 
-				log.info("server  : {}", serverSocket.getLocalAddress());
+			log.info("server  : {}", serverSocket.getLocalAddress());
 
-				serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-				while (selector.select() > 0) {
-					Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
-					while (keys.hasNext()) {
-						SelectionKey key = keys.next();
-						keys.remove();
+			serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+			while (selector.select() > 0) {
+				Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
+				while (keys.hasNext()) {
+					SelectionKey key = keys.next();
+					keys.remove();
 
-						if (!key.isValid())
-							continue;
+					if (!key.isValid())
+						continue;
 
-						if (key.isAcceptable()) {
-							accept(selector, key);
-						}else
-						if (key.isReadable()) {
-							receive(selector, key);
-						}else
-						if (key.isWritable()) {
-							send(selector, key);
-						}
+					if (key.isAcceptable()) {
+						accept(selector, key);
+					}else
+					if (key.isReadable()) {
+						receive(selector, key);
+					}else
+					if (key.isWritable()) {
+						send(selector, key);
 					}
 				}
 			}
-
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("SERVER ERROR : {}",e.getMessage(),e);
 		} finally {
 			log.info("finish server : {}", this);
 		}
@@ -178,6 +196,14 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 
 		} catch (IOException e) {
 			log.error("accept : ", e);
+		}
+	}
+
+	public void awaitTerminate() {
+		try {
+			this.server_excutor.awaitTermination(10,TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 

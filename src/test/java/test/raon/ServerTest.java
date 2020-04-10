@@ -19,8 +19,7 @@ public class ServerTest {
 		server.setPort(5050);
 
 		server.setProcessHandler(RaonServerProcess.class.getName());
-		server.initialize();
-		server.start();
+		server.save("./config/server.json");
 		
 		//server.save(fileName);
 	}

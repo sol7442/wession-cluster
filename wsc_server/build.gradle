@@ -1,4 +1,5 @@
 dependencies {
 	compile project(':wsc_core')
+	compile project(':wsc-daemon')
 }
 

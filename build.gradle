@@ -3,8 +3,8 @@ project.version = '2.0.0'
 allprojects{
 	apply plugin: 'java'
 	
-	sourceCompatibility = 1.7
-	targetCompatibility = 1.7
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
 	
 	compileJava.options.encoding = 'UTF-8'
 
@@ -45,8 +45,23 @@ subprojects {
 
 }
 
+task copyBuildLibs(type: Copy) {
+	def date_path = new Date().format('yyyyMMddHHmmss')
+	
+    into "dist" + "/" + date_path
+    from configurations.runtime , "${buildDir}\\libs"
+    include "**/wsc*.*","**/wow-*.*","**/wession-*.*"
+}
+
+task copyRuntimeLibs(type: Copy) {
+    into "libs"
+    from configurations.runtime
+    exclude "**/wsc*.*","**/wow-*.*"
+}
+	
 dependencies {
 	compile project(':wsc_server')
 	compile project(':wsc_cluster')
+	compile project(':wsc-daemon')
 }
 
