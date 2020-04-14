@@ -45,10 +45,9 @@ public class WowSantaDaemon implements Daemon {
 		log.debug("DAEMON CONFIG  : {} ",args[1]);
 		
 		@SuppressWarnings("unchecked")
-		Class<JsonConfiguration> config_class = (Class<JsonConfiguration>) Class.forName(args[0]);
-		service = (DaemonService) JsonConfiguration.load(args[1], config_class);
-		
-		service.initialize();
+		Class<DaemonService> config_class = (Class<DaemonService>) Class.forName(args[0]);
+		service = config_class.newInstance();
+		service.initialize(args[1]);
 	}
 
 	@Override

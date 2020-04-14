@@ -21,6 +21,7 @@ public class ServerTest {
 		server.setProcessHandler(RaonServerProcess.class.getName());
 		server.save("./config/server.json");
 		
+		server.awaitTerminate();
 		//server.save(fileName);
 	}
 }

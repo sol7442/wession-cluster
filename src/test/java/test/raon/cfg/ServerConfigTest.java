@@ -34,7 +34,7 @@ public class ServerConfigTest {
 			DaemonService service = (DaemonService) JsonConfiguration.load(file_name, config_class);
 			
 			System.out.println(service);
-			service.initialize();
+			service.initialize(file_name);
 			service.start();
 			
 			((NioServer)service).awaitTerminate();

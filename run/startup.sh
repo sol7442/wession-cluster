@@ -13,7 +13,7 @@ CLASSPATH='';
 ###########################
 APP_PACKAGE='ws-wession'
 MAIN_CLASS='com.wowsanta.daemon.WowSantaDaemon';
-SERVICE_CLASS='com.wowsanta.server.nio.NioServer';
+SERVICE_CLASS='com.wowsanta.wession.impl.Wession';
 SERVICE_CONFIG='../config/nio.server.json';
 PID_FILE='wow-daemon.pid'
 

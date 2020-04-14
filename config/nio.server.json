@@ -1,4 +1,5 @@
 {
+  "ipAddr":"127.0.0.1",
   "port": 5050,
   "core": 2,
   "processHandler": "com.wowsanta.wession.impl.server.RaonServerProcess"

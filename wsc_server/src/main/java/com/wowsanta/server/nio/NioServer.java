@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @EqualsAndHashCode(callSuper = false)
 public class NioServer extends JsonConfiguration implements Server, Runnable {
+	String ipAddr;
 	int port;
 	int core;
 	String processHandler;
@@ -95,12 +96,17 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 			serverSocket.configureBlocking(false);
 			serverSocket.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 			serverSocket.setOption(StandardSocketOptions.SO_RCVBUF, 1024 * 16 * 2);
-			serverSocket.bind(new InetSocketAddress("localhost", port));
+			serverSocket.bind(new InetSocketAddress(ipAddr, port));
 
-			log.info("server  : {}", serverSocket.getLocalAddress());
-
+			log.info("server  : {}", serverSocket);
 			serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-			while (selector.select() > 0) {
+			log.info("server register : {}",new Date());
+			
+			int selected;
+			while ( (selected = selector.select()) > 0) {
+				
+				log.debug("selected : {} ",  selected);
+				
 				Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
 				while (keys.hasNext()) {
 					SelectionKey key = keys.next();

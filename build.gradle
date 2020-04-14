@@ -45,7 +45,8 @@ subprojects {
 
 }
 
-task copyBuildLibs(type: Copy) {
+task copyBuildLibs(type: Copy, group:'build', dependsOn: 'jar') {
+	
 	def date_path = new Date().format('yyyyMMddHHmmss')
 	
     into "dist" + "/" + date_path

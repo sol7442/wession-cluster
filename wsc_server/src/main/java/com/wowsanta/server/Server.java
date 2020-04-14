@@ -1,6 +1,8 @@
 package com.wowsanta.server;
 
-import com.wowsanta.daemon.DaemonService;
 
-public interface Server extends DaemonService {
+public interface Server {
+	public boolean initialize();
+	public void start();
+	public void stop();
 }
