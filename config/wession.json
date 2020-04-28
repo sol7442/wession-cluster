@@ -1,0 +1,13 @@
+{
+  "server": {
+    "confClass": "com.wowsanta.wession.impl.server.RaonInterfaceServer",
+    "confValue": {
+      "ipAddr": "127.0.0.1",
+      "port": 5050,
+      "core": 2,
+      "threadSize": 10,
+      "processTimeout": 1000,
+      "processHandlerClass": "com.wowsanta.wession.impl.server.RaonServerProcess"
+    }
+  }
+}

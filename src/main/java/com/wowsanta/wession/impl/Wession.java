@@ -2,21 +2,26 @@ package com.wowsanta.wession.impl;
 
 import com.wowsanta.daemon.DaemonService;
 import com.wowsanta.server.Server;
-import com.wowsanta.server.nio.NioServer;
 import com.wowsanta.util.config.JsonConfiguration;
 
-public class Wession implements DaemonService {
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-	public Server server;
+@Data
+@EqualsAndHashCode(callSuper=false)
+public class Wession extends JsonConfiguration implements DaemonService {
+	
+	Server server;
+	
 	public static void main(String[] args) {
-		Wession wession = new Wession();
-		wession.initialize("./config/nio.server.json");
+		System.out.println("config file : " + args[0]);
+		Wession wession = Wession.load(args[0],Wession.class);
+		wession.initialize(null);
 		wession.start();
 	}
 
 	@Override
 	public boolean initialize(String config) {
-		server = (Server) JsonConfiguration.load(config, NioServer.class);
 		return server.initialize();
 	}
 

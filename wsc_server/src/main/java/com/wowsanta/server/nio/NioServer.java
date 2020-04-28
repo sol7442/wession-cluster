@@ -18,7 +18,6 @@ import java.util.concurrent.TimeoutException;
 
 import com.wowsanta.server.ProcessFactory;
 import com.wowsanta.server.Server;
-import com.wowsanta.util.config.JsonConfiguration;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,25 +26,28 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = false)
-public class NioServer extends JsonConfiguration implements Server, Runnable {
+public class NioServer extends Server implements  Runnable {
 	String ipAddr;
 	int port;
 	int core;
-	String processHandler;
+	int threadSize     = 10;
+	int processTimeout = 1000;
+	
+	String processHandlerClass;
 
 	transient ProcessFactory process_factory = new ProcessFactory();
 	transient ExecutorService server_excutor;
 	transient ExecutorService service_excutor;
 
-	Selector selector;
-	ServerSocketChannel serverSocket;
+	transient Selector selector;
+	transient ServerSocketChannel serverSocket;
 	
 	@Override
 	public boolean initialize() {
-		server_excutor = Executors.newSingleThreadExecutor();
-		service_excutor = Executors.newFixedThreadPool(10);
+		server_excutor  = Executors.newSingleThreadExecutor();
+		service_excutor = Executors.newFixedThreadPool(threadSize);
 		try {
-			process_factory.setProcessClass(this.processHandler);
+			process_factory.setProcessClass(this.processHandlerClass);
 		} catch (ClassNotFoundException e) {
 			log.error("INITIALIZE FAILED : ",e);
 		}
@@ -165,7 +167,7 @@ public class NioServer extends JsonConfiguration implements Server, Runnable {
 					NioConnection connection = null;
 					try {
 						long start_time = System.currentTimeMillis();
-						connection = future.get(1000, TimeUnit.SECONDS);
+						connection = future.get(processTimeout, TimeUnit.SECONDS);
 						duratorion = System.currentTimeMillis() - start_time;
 					} catch (InterruptedException e) {
 						e.printStackTrace();

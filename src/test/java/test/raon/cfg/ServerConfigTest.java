@@ -2,47 +2,29 @@ package test.raon.cfg;
 
 import org.junit.Test;
 
-import com.wowsanta.daemon.DaemonService;
-import com.wowsanta.server.nio.NioServer;
-import com.wowsanta.util.config.JsonConfiguration;
-import com.wowsanta.wession.impl.server.RaonServerProcess;
+import com.wowsanta.wession.impl.Wession;
+import com.wowsanta.wession.impl.server.RaonInterfaceServer;
 
 public class ServerConfigTest {
 	
-	final String file_name = "./config/nio.server.json";
+	final String file_name = "./config/wession.json";
 	
 	@Test
-	public void save_tet() {
-		JsonConfiguration server = new NioServer();
-		((NioServer)server).setCore(2);
-		((NioServer)server).setPort(5050);
-		((NioServer)server).setProcessHandler(RaonServerProcess.class.getName());
+	public void create_test() {
+		Wession w = new Wession();
+		RaonInterfaceServer server = new RaonInterfaceServer();
+		server.setIpAddr("127.0.0.1");
+		server.setPort(5050);
+		server.setCore(2);
 		
-		server.save(file_name);
-		
-		
-//		WowSantaDaemon daemon = new WowSantaDaemon();
-//		daemon.setService(server);
-//		daemon.save(file_name);
-		
+		w.setServer(server);
+		w.save(file_name);
 	}
+	
 	@Test
-	public void load_tet() {
-		try {
-			@SuppressWarnings("unchecked")
-			Class<JsonConfiguration>  config_class = (Class<JsonConfiguration>) Class.forName(NioServer.class.getName());
-			DaemonService service = (DaemonService) JsonConfiguration.load(file_name, config_class);
-			
-			System.out.println(service);
-			service.initialize(file_name);
-			service.start();
-			
-			((NioServer)service).awaitTerminate();
-			
-			service.stop();
-			
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+	public void load_test() {
+		Wession w = Wession.load(file_name, Wession.class);
+		
+		System.out.println(w);
 	}
 }

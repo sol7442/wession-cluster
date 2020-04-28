@@ -10,14 +10,16 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 
 public class JsonConfiguration {
-	private static transient GsonBuilder builder = new GsonBuilder();
+	public static transient GsonBuilder builder = new GsonBuilder();
 	static {
 		builder.registerTypeAdapter(JsonConfiguration.class, new ConfigurationTypAdapter());
 		builder.setPrettyPrinting();
 		builder.disableHtmlEscaping();
 	}
 	
-	String impleClass;
+	public static void addTypeAdapter(Class<?> clazz) {
+		builder.registerTypeAdapter(clazz, new ConfigurationTypAdapter());
+	}
 	public String toString(boolean pretty) {
 		Gson gson = builder.create();
 		return gson.toJson(this);
@@ -41,7 +43,7 @@ public class JsonConfiguration {
 				e.printStackTrace();
 			}
 		}else {
-			System.err.println("--=-");
+			System.err.println("---");
 		}
 		return config;
 	}

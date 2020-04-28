@@ -1,0 +1,23 @@
+{
+  "server": {
+    "confClass": "test.util.config.ServerT",
+    "confValue": {
+      "serverName": "tServer",
+      "services": [
+        {
+          "confClass": "test.util.config.IndexService",
+          "confValue": {
+            "length": 0
+          }
+        },
+        {
+          "confClass": "test.util.config.ClusterService",
+          "confValue": {
+            "size": 0
+          }
+        }
+      ]
+    }
+  },
+  "instanceName": "tInstance"
+}
