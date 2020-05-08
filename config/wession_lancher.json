@@ -1,0 +1,32 @@
+{
+  "interfaceServer": {
+    "confClass": "com.wowsanta.wession.impl.server.RaonInterfaceServer",
+    "confValue": {
+      "ipAddr": "127.0.0.1",
+      "port": 5050,
+      "core": 2,
+      "threadSize": 10,
+      "processTimeout": 1000,
+      "processHandlerClass": "com.wowsanta.wession.impl.server.RaonSessionHandler"
+    }
+  },
+  "clusterServer": {
+    "confClass": "com.wowsanta.wession.cluster.ClusterRepository",
+    "confValue": {
+      "nodes": [],
+      "ipAddr": "127.0.0.1",
+      "port": 5051,
+      "core": 2,
+      "threadSize": 10,
+      "processTimeout": 1000,
+      "processHandlerClass": "com.wowsanta.wession.cluster.ClusterProcessHandler"
+    }
+  },
+  "indexService": {
+    "keyList": [
+      "name",
+      "userId"
+    ],
+    "wessionClassName": "com.wowsanta.wession.impl.session.RaonSession"
+  }
+}

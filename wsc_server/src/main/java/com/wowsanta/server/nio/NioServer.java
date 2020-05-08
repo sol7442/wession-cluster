@@ -9,14 +9,14 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import com.wowsanta.server.ProcessFactory;
+import com.wowsanta.server.ProcessHandler;
+import com.wowsanta.server.Response;
 import com.wowsanta.server.Server;
 
 import lombok.Data;
@@ -106,9 +106,6 @@ public class NioServer extends Server implements  Runnable {
 			
 			int selected;
 			while ( (selected = selector.select()) > 0) {
-				
-				log.debug("selected : {} ",  selected);
-				
 				Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
 				while (keys.hasNext()) {
 					SelectionKey key = keys.next();
@@ -149,34 +146,38 @@ public class NioServer extends Server implements  Runnable {
 		NioConnection connection = null;
 		try {
 			connection = (NioConnection) key.attachment();
-			int size = connection.read();
+			int size = connection.read0();
 			if (size == -1) {
 				log.info(" Connection closed by client : {}", connection.client.socket().getRemoteSocketAddress());
 				connection.close();
 				return;
 			}
 
-			NioProcess porcess = (NioProcess) process_factory.newProcess();
-			porcess.connection = connection;
+			NioProcessHandler process = (NioProcessHandler) process_factory.newProcess();
+			
+			process.bind(connection);
+			log.debug("bind : {}", connection.client.socket().getRemoteSocketAddress());
 
-			final Future<NioConnection> future = service_excutor.submit(porcess);
+			process.read();
+			log.debug("read : {}", connection.client.socket().getRemoteSocketAddress());
+			
+			final Future<NioProcessHandler> future = service_excutor.submit(process);
 			service_excutor.execute(new Runnable() {
+				long start_time = System.currentTimeMillis();
+				
 				@Override
 				public void run() {
 					long duratorion = 0;
-					NioConnection connection = null;
+					int size = 0;
+					NioProcessHandler handler;
 					try {
-						long start_time = System.currentTimeMillis();
-						connection = future.get(processTimeout, TimeUnit.SECONDS);
+						handler = future.get(processTimeout, TimeUnit.SECONDS);
+						size = handler.write();
 						duratorion = System.currentTimeMillis() - start_time;
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} catch (ExecutionException e) {
-						e.printStackTrace();
-					} catch (TimeoutException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 					}finally {
-						log.debug("connection : {} / {} ",connection.client,duratorion);
+						log.debug("write : {} / {} ",size,duratorion);
 					}
 				}
 			});

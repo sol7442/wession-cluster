@@ -2,7 +2,7 @@ package test.raon;
 
 
 import com.wowsanta.server.nio.NioServer;
-import com.wowsanta.wession.impl.server.RaonServerProcess;
+import com.wowsanta.wession.impl.server.RaonSessionHandler;
 
 public class ServerTest {
 	
@@ -18,7 +18,7 @@ public class ServerTest {
 		server.setCore(2);
 		server.setPort(5050);
 
-		server.setProcessHandlerClass(RaonServerProcess.class.getName());
+		server.setProcessHandlerClass(RaonSessionHandler.class.getName());
 		server.save("./config/server.json");
 		
 		server.awaitTerminate();

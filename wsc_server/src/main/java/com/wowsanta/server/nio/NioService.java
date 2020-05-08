@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.wowsanta.server.Connection;
-import com.wowsanta.server.Process;
+import com.wowsanta.server.ProcessHandler;
 import com.wowsanta.server.ProcessFactory;
 import com.wowsanta.server.Service;
 

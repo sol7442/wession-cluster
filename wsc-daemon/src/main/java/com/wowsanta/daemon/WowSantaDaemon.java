@@ -18,7 +18,7 @@ public class WowSantaDaemon implements Daemon {
 	private static WowSantaDaemon daemon = new WowSantaDaemon();
 	private static ShutdownDaemonHookThread shutdownHook;
 	
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		try {
 			shutdownHook = new ShutdownDaemonHookThread();
 			shutdownHook.attachShutDownHook(daemon);

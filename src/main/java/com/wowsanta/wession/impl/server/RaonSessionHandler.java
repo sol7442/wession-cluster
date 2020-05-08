@@ -1,10 +1,9 @@
 package com.wowsanta.wession.impl.server;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 
-import com.wowsanta.server.nio.NioProcess;
+import com.wowsanta.server.ServerException;
+import com.wowsanta.server.nio.NioProcessHandler;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.impl.cmd.HELLO;
 import com.wowsanta.wession.impl.cmd.PS_ADDUSERDATA;
@@ -14,42 +13,56 @@ import com.wowsanta.wession.impl.cmd.PS_GETTOKENOTP;
 import com.wowsanta.wession.impl.cmd.PS_GETUSERDATA;
 import com.wowsanta.wession.impl.cmd.PS_REGISTER;
 import com.wowsanta.wession.impl.cmd.PS_SESSIONVALID;
+import com.wowsanta.wession.impl.data.INT;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class RaonServerProcess extends NioProcess{
-	private RaonCommandProcessor cmd_proc ;
-	public void read() {
+public class RaonSessionHandler extends NioProcessHandler{
+	private RaonCommandProcessor command_process ;
+	
+	@Override
+	public void read() throws IOException {
 		try {
-
-			byte[] command = new byte[4];
-			this.connection.readBuffer.flip();		
-			this.connection.readBuffer.get(command);
-
-			cmd_proc = create_command_process(ByteBuffer.wrap(command).getInt());
-			cmd_proc.request(this.connection.readBuffer);
-		
-			log.debug("CMD : {}", cmd_proc);
+			int length = this.connection.remaining();
+			
+			log.debug("read lenght : {}",length) ;
+			if(length > 0) {
+				byte[] bytes = new byte[length];
+				this.connection.read(bytes);
+				
+				command_process = create_command_process(bytes);
+				command_process.setData(bytes);
+			}
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	public void write() {
-		try {
-			this.connection.write(cmd_proc.response());
-			log.debug("CMD : {}", cmd_proc);	
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	public void run() {
-		cmd_proc.process();
+
+	@Override
+	public void run() throws ServerException {
+		command_process.run();
 	}
 
-	private RaonCommandProcessor create_command_process(int cmd) {
+	@Override
+	public void write() throws IOException {
+		this.connection.write(command_process.getData());
+	}
+
+
+	@Override
+	public void error(Throwable e) throws IOException {
+	}
+	
+	
+	private RaonCommandProcessor create_command_process(byte[] bytes) {
 		RaonCommandProcessor cmd_proc = null;
-		switch (cmd) {
+		
+		int command = new INT(bytes,0).getValue();
+		log.debug("Session Command : {}", Hex.toHexString(command));
+		
+		
+		switch (command) {
 		case 1:
 			cmd_proc = new HELLO();
 			break;
@@ -79,4 +92,12 @@ public class RaonServerProcess extends NioProcess{
 		}
 		return cmd_proc;
 	}
+
+
+
+
+
+
+
+
 }

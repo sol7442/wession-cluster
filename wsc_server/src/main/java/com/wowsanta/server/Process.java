@@ -1,6 +1,9 @@
 package com.wowsanta.server;
 
-public interface Process extends Runnable{
-	
-	
+import java.io.IOException;
+
+public interface Process {
+	public abstract void setData(byte[] data)throws IOException;
+	public abstract byte[] getData()throws IOException;
+	public abstract void run() throws ServerException;
 }

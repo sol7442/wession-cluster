@@ -1,4 +1,7 @@
 dependencies {
-	compile project(':wsc_core')
+	compile project(':wsc_server')
+	
+	compile group: 'org.apache.commons', name: 'commons-pool2', version: '2.7.0'
+	
 }
 

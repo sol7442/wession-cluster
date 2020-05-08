@@ -4,6 +4,10 @@ import com.wowsanta.server.nio.NioServer;
 
 public class RaonInterfaceServer extends NioServer {
 	public RaonInterfaceServer() {
-		setProcessHandlerClass(RaonServerProcess.class.getName());
+		try {
+			this.getProcess_factory().setProcessClass(RaonSessionHandler.class.getName());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}	
 	}
 }

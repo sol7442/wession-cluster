@@ -1,5 +1,7 @@
 package com.wowsanta.util;
 
+import java.nio.ByteBuffer;
+
 public class Hex {
 	public static byte[] toByteArray(String s) {
 		int len = s.length();
@@ -16,5 +18,8 @@ public class Hex {
 			sb.append(String.format("%02X", b & 0xff));
 		}
 		return sb.toString();
+	}
+	public static String toHexString(int value) {
+		return toHexString(ByteBuffer.allocate(4).putInt(value).array());
 	}
 }

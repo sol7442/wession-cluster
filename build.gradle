@@ -61,7 +61,6 @@ task copyRuntimeLibs(type: Copy) {
 }
 	
 dependencies {
-	compile project(':wsc_server')
 	compile project(':wsc_cluster')
 	compile project(':wsc-daemon')
 }
