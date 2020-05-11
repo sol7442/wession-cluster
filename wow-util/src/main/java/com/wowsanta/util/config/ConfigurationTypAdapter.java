@@ -22,7 +22,7 @@ public class ConfigurationTypAdapter extends TypeAdapter<JsonConfiguration> {
 			
 			out.name(NAME_CLASS);
 			out.value(config.getClass().getName());
-			
+
 			out.name(NAME_CONIF);
 			adpater.write(out, config);
 			

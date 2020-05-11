@@ -22,9 +22,10 @@ public class RaonSessionHandler extends NioProcessHandler{
 	private RaonCommandProcessor command_process ;
 	
 	@Override
-	public void read() throws IOException {
+	public int read() throws IOException {
+		int length = -1;
 		try {
-			int length = this.connection.remaining();
+			length = this.connection.remaining();
 			
 			log.debug("read lenght : {}",length) ;
 			if(length > 0) {
@@ -37,6 +38,7 @@ public class RaonSessionHandler extends NioProcessHandler{
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
+		return length;
 	}
 
 	@Override
@@ -45,8 +47,10 @@ public class RaonSessionHandler extends NioProcessHandler{
 	}
 
 	@Override
-	public void write() throws IOException {
-		this.connection.write(command_process.getData());
+	public int write() throws IOException {
+		byte[] data  = command_process.getData();
+		this.connection.write(data);
+		return data.length;
 	}
 
 

@@ -7,7 +7,7 @@
       "core": 2,
       "threadSize": 10,
       "processTimeout": 1000,
-      "processHandlerClass": "com.wowsanta.wession.impl.server.RaonSessionHandler"
+      "queueSize": 100
     }
   },
   "clusterServer": {
@@ -19,7 +19,9 @@
       "core": 2,
       "threadSize": 10,
       "processTimeout": 1000,
-      "processHandlerClass": "com.wowsanta.wession.cluster.ClusterProcessHandler"
+      "queueSize": 100,
+      "connectionFactoryClass": "com.wowsanta.wession.cluster.ClusterConnectionFactory",
+      "serviceDispatcherClass": "com.wowsanta.wession.cluster.ClusterServiceDispathcer"
     }
   },
   "indexService": {

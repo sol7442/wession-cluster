@@ -1,32 +1,41 @@
 package com.wowsanta.server.nio;
 
+import java.io.IOException;
 import java.util.Date;
-import java.util.concurrent.Callable;
-
+import java.util.concurrent.BlockingQueue;
 
 import com.wowsanta.server.ProcessHandler;
+import com.wowsanta.server.Request;
+import com.wowsanta.server.Response;
+import com.wowsanta.server.ServerException;
 
 import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
-public abstract class NioProcessHandler implements Callable<NioProcessHandler> , ProcessHandler {
-	protected NioConnection connection;
-	public NioProcessHandler bind(NioConnection conneciton) {
-		this.connection = conneciton;
-		return this;
-	}
+public abstract class NioProcessHandler implements Runnable , ProcessHandler {
+	protected BlockingQueue<Request> requestQueue; 
 	
-	@Override
-	public NioProcessHandler call() throws Exception {
+	public void run() {
 		try {
-			log.debug("run 1 : {} ", this.connection);
-			run();
-			log.debug("run 2 : {} ", this.connection);
-		}catch (Exception e) {
-			error(e);
-		}finally {
+			while(true) {
+				Request  request = requestQueue.take();
+				Response response; 
+				
+				start();
+				try {
+					response = read(request);
+					proc(request, response);
+					write(response);
+				} catch (ServerException | IOException e) {
+					error(e);
+				}finally {
+					finish();
+				}
+			}
+		} catch (InterruptedException | IOException e) {
+			e.printStackTrace();
 		}
-		return this;
+		log.debug("process thread finished : {} ", new Date() );
 	}
 }

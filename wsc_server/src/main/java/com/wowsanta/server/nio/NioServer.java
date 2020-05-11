@@ -9,15 +9,21 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import com.wowsanta.server.ProcessFactory;
-import com.wowsanta.server.ProcessHandler;
-import com.wowsanta.server.Response;
+import com.wowsanta.server.Connection;
+import com.wowsanta.server.ConnectionFactory;
+import com.wowsanta.server.RequestHandler;
+import com.wowsanta.server.HandlerFactory;
+import com.wowsanta.server.Request;
 import com.wowsanta.server.Server;
+import com.wowsanta.server.ServerException;
+import com.wowsanta.server.ServiceDispatcher;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,34 +36,79 @@ public class NioServer extends Server implements  Runnable {
 	String ipAddr;
 	int port;
 	int core;
-	int threadSize     = 10;
+	int threadSize     = 5;
 	int processTimeout = 1000;
-	
-	String processHandlerClass;
-
-	transient ProcessFactory process_factory = new ProcessFactory();
+	int queueSize      = 100;
+		
+//	String processHandlerClass;
+//	String connectionHandlerClass;
+//	transient HandlerFactory handler_factory = new HandlerFactory();
 	transient ExecutorService server_excutor;
 	transient ExecutorService service_excutor;
-
+	
+	//transient ConnectionHandler connectionHandler;
+	
+	String connectionFactoryClass;
+	String requestHandlerClass;
+	String serviceDispatcherClass;
+	
+	
+	transient ConnectionFactory connectionFactory;
+	transient RequestHandler 	requestHandler;
+	transient ServiceDispatcher serviceDispatcher;
+	
+	
 	transient Selector selector;
 	transient ServerSocketChannel serverSocket;
+	transient BlockingQueue<Request> rquestQueue ;
 	
 	@Override
 	public boolean initialize() {
 		server_excutor  = Executors.newSingleThreadExecutor();
 		service_excutor = Executors.newFixedThreadPool(threadSize);
+		rquestQueue = new ArrayBlockingQueue<Request>(queueSize);
+		
 		try {
-			process_factory.setProcessClass(this.processHandlerClass);
-		} catch (ClassNotFoundException e) {
-			log.error("INITIALIZE FAILED : ",e);
-		}
-		return true;
+			
+			this.connectionFactory = (ConnectionFactory) Class.forName(connectionFactoryClass).newInstance();
+			this.serviceDispatcher = (ServiceDispatcher) Class.forName(serviceDispatcherClass).newInstance();
+			
+			this.connectionFactory.bindRquestQueue(this.rquestQueue);
+			this.serviceDispatcher.bindRquestQueue(this.rquestQueue);
+			
+			return true;
+		} catch (Exception e) {
+			log.error("Server Handler Class Error : " + e.getMessage(), e);
+		} 
+		
+		return false;
 	}
 
 	@Override
 	public void start() {
 		log.info("SERVER START : {}", new Date());
-		server_excutor.execute(this);
+		try {
+			
+			this.connectionFactory = (ConnectionFactory) Class.forName(connectionFactoryClass).newInstance();
+			this.connectionFactory.bindRquestQueue(this.rquestQueue);
+			server_excutor.execute(this);
+			
+			for(int i=0; i<threadSize; i++) {
+				ServiceDispatcher serviceDispatcher = (ServiceDispatcher) Class.forName(serviceDispatcherClass).newInstance();
+				serviceDispatcher.bindRquestQueue(this.rquestQueue);
+				
+				service_excutor.execute(serviceDispatcher);
+			}
+			
+		} catch (Exception e) {
+			log.error("Server Handler Class Error : " + e.getMessage(), e);
+		} 
+//
+//
+//		if(this.serviceDispatcher != null) {
+//			server_excutor.execute(this);
+//			service_excutor.execute(serviceDispatcher);	
+//		}
 	}
 
 	@Override
@@ -104,8 +155,7 @@ public class NioServer extends Server implements  Runnable {
 			serverSocket.register(selector, SelectionKey.OP_ACCEPT);
 			log.info("server register : {}",new Date());
 			
-			int selected;
-			while ( (selected = selector.select()) > 0) {
+			while ( selector.select() > 0) {
 				Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
 				while (keys.hasNext()) {
 					SelectionKey key = keys.next();
@@ -152,37 +202,7 @@ public class NioServer extends Server implements  Runnable {
 				connection.close();
 				return;
 			}
-
-			NioProcessHandler process = (NioProcessHandler) process_factory.newProcess();
-			
-			process.bind(connection);
-			log.debug("bind : {}", connection.client.socket().getRemoteSocketAddress());
-
-			process.read();
-			log.debug("read : {}", connection.client.socket().getRemoteSocketAddress());
-			
-			final Future<NioProcessHandler> future = service_excutor.submit(process);
-			service_excutor.execute(new Runnable() {
-				long start_time = System.currentTimeMillis();
-				
-				@Override
-				public void run() {
-					long duratorion = 0;
-					int size = 0;
-					NioProcessHandler handler;
-					try {
-						handler = future.get(processTimeout, TimeUnit.SECONDS);
-						size = handler.write();
-						duratorion = System.currentTimeMillis() - start_time;
-					} catch (Exception e) {
-						e.printStackTrace();
-					}finally {
-						log.debug("write : {} / {} ",size,duratorion);
-					}
-				}
-			});
-
-		} catch (IOException e) {
+		} catch (Exception e) {
 			connection.close();
 			log.info(" Connection finished by client : {}", connection.client.socket().getRemoteSocketAddress());
 		}
@@ -194,18 +214,16 @@ public class NioServer extends Server implements  Runnable {
 			SocketChannel channel = serverChannel.accept();
 			channel.configureBlocking(false);
 
-			NioConnection connection = new NioConnection();
-			connection.initialize();
-
-			connection.setClient(channel);
-
+			Connection connection = connectionFactory.build(channel);
 			log.info("Connected to : {} ", channel.socket().getRemoteSocketAddress());
 
 			channel.register(selector, SelectionKey.OP_READ, connection);
 
 		} catch (IOException e) {
 			log.error("accept : ", e);
-		}
+		} catch (ServerException e) {
+			log.error("accept : ", e);
+		} 
 	}
 
 	public void awaitTerminate() {

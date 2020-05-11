@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import com.wowsanta.client.nio.NioClient;
 import com.wowsanta.util.Hex;
+import com.wowsanta.wession.cluster.ClusterClient;
 import com.wowsanta.wession.cluster.ClusterCreateRequest;
 import com.wowsanta.wession.impl.session.RaonSession;
 
@@ -18,7 +19,7 @@ public class ClientTest {
 	int port = 5051;
 	@Test
 	public void write_test() {
-		NioClient client = new NioClient(ip, port);
+		NioClient client = new ClusterClient(ip, port);
 		try 
 		{
 			client.connect();
@@ -35,12 +36,13 @@ public class ClientTest {
 			ClusterCreateRequest request = new ClusterCreateRequest();
 			request.setWession(session);
 			client.write(request);
-//			client.write(request);
-//			client.write(request);
-//			client.write(request);
-//			client.write(request);
-//			client.write(request);
-//			client.write(request);
+			
+			client.write(request);
+			client.write(request);
+			client.write(request);
+			client.write(request);
+			client.write(request);
+			client.write(request);
 			
 			Thread.sleep(1000);
 			client.close();

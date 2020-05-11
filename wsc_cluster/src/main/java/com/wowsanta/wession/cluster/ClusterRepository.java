@@ -31,9 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = false)
 @Slf4j
 public class ClusterRepository extends NioServer implements WessionRepository<Wession> {
-	private transient final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-	private transient final Lock readLock = readWriteLock.readLock();
-	private transient final Lock writeLock = readWriteLock.writeLock();
+//	private transient final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+//	private transient final Lock readLock = readWriteLock.readLock();
+//	private transient final Lock writeLock = readWriteLock.writeLock();
 	
 	private transient ThreadPoolExecutor executor;
 
@@ -51,50 +51,10 @@ public class ClusterRepository extends NioServer implements WessionRepository<We
 		return super.initialize();
 	}
 
-	private class WessionClusterRequest implements WessionRequest, Runnable {
-
-		final MessageType mesasgeType;
-		final Wession wession;
-
-		public WessionClusterRequest(MessageType type, Wession wession) {
-			this.mesasgeType = type;
-			this.wession = wession;
-		}
-
-		@Override
-		public void run() {
-			readLock.lock();
-			try {
-				for (ClusterNode node : nodes) {
-					try {
-						node.send(this);						
-					} catch (Exception e) {
-						
-					} finally {
-						log.debug("cluster.{}.{} : {} ", node.getName(), this.mesasgeType, this.wession.getKey());
-					}
-				}
-			}catch (Exception e) {
-			}finally {
-				readLock.unlock();
-			}
-		}
-
-		@Override
-		public MessageType getMessageType() {
-			return this.mesasgeType;
-		}
-
-		@Override
-		public void parse() {
-			// TODO Auto-generated method stub
-			
-		}
-	}
 
 	@Override
 	public void create(Wession s) throws RespositoryException {
-		executor.execute(new WessionClusterRequest(MessageType.CREATE, s));
+		//executor.execute(new WessionClusterRequest(MessageType.CREATE, s));
 		log.debug("cluster.create : {} ", s.getKey());
 	}
 
@@ -105,13 +65,13 @@ public class ClusterRepository extends NioServer implements WessionRepository<We
 
 	@Override
 	public void update(Wession s) throws RespositoryException {
-		executor.execute(new WessionClusterRequest(MessageType.UPDATE, s));
+		//executor.execute(new WessionClusterRequest(MessageType.UPDATE, s));
 		log.debug("cluster.update : {} ", s.getKey());
 	}
 
 	@Override
 	public void delete(Wession s) throws RespositoryException {
-		executor.execute(new WessionClusterRequest(MessageType.DELETE, s));
+		//executor.execute(new WessionClusterRequest(MessageType.DELETE, s));
 		log.debug("cluster.delete : {} ", s.getKey());
 	}
 

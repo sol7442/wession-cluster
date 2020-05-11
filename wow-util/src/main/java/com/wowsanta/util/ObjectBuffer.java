@@ -8,10 +8,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
-public class Buffer {
-	public static ByteBuffer toBuffer(Serializable obj)throws IOException {
-		return ByteBuffer.wrap(toByteArray(obj));
-	}
+public class ObjectBuffer {
+//	public static ByteBuffer toBuffer(Serializable obj)throws IOException {
+//		return ByteBuffer.wrap(toByteArray(obj));
+//	}
 	
     public static byte[] toByteArray(Serializable obj) throws IOException {
     	byte[] bytes = null;
