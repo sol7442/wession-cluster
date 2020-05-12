@@ -10,8 +10,8 @@ import org.junit.Test;
 import com.wowsanta.client.nio.NioClient;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.cluster.ClusterClient;
-import com.wowsanta.wession.cluster.ClusterCreateRequest;
 import com.wowsanta.wession.impl.session.RaonSession;
+import com.wowsanta.wession.message.CreateMessage;
 
 public class ClientTest {
 
@@ -33,7 +33,7 @@ public class ClientTest {
 			session.setAttribute("key1","value1");
 			session.setAttribute("key2","value2");
 			
-			ClusterCreateRequest request = new ClusterCreateRequest();
+			CreateMessage request = new CreateMessage(session);
 			request.setWession(session);
 			client.write(request);
 			

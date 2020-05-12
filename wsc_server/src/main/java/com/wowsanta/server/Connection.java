@@ -1,12 +1,7 @@
 package com.wowsanta.server;
 
-import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
 
-public interface Connection {
+public interface Connection extends AutoCloseable{
 	int read0() throws ServerException;
 	int write0() throws ServerException;
-//	
-//	int read(byte[] date) throws IOException;
-//	void write(byte[] data)throws IOException;
 }

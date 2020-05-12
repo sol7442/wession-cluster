@@ -2,6 +2,8 @@ package com.wowsanta.wession.message;
 
 import java.util.List;
 
+import com.wowsanta.server.Connection;
+import com.wowsanta.server.ServerException;
 import com.wowsanta.wession.session.Wession;
 
 import lombok.Data;
@@ -15,9 +17,20 @@ public class SearchResponse implements WessionResponse {
 	private int startIndex;
 	private List<Wession> resources;
 	@Override
-	public byte[] toBytes() {
+	public Connection getConnection() {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	@Override
+	public void setConnection(Connection conn) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void write() throws ServerException {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	
 }

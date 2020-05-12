@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.wowsanta.wession.message.SearchRequest;
+import com.wowsanta.wession.message.SearchMessage;
 import com.wowsanta.wession.message.SearchResponse;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
@@ -87,7 +87,7 @@ public class IndexNode implements WessionRepository<Wession>{
 		log.debug("index.remove.{} : {} ", keyName, index_key);		
 	}
 	@Override
-	public SearchResponse search(SearchRequest r)throws RespositoryException{
+	public SearchResponse search(SearchMessage r)throws RespositoryException{
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -6,7 +6,7 @@ import java.util.Set;
 import com.wowsanta.wession.cluster.ClusterRepository;
 import com.wowsanta.wession.core.CoreRepository;
 import com.wowsanta.wession.index.IndexRepository;
-import com.wowsanta.wession.message.SearchRequest;
+import com.wowsanta.wession.message.SearchMessage;
 import com.wowsanta.wession.message.SearchResponse;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
@@ -81,7 +81,7 @@ public class WessionCluster implements WessionRepository<Wession> {
 	}
 
 	@Override
-	public SearchResponse search(SearchRequest request)throws RespositoryException{
+	public SearchResponse search(SearchMessage request)throws RespositoryException{
 		SearchResponse response = null;
 		if(isIndexSearch(request.getFilter())) {
 			response = indexRepository.search(request);

@@ -22,7 +22,6 @@ public abstract class ServiceDispatcher extends JsonConfiguration implements Run
 	}
 	public void run() {
 		log.debug("ServiceDispatcher : RUN - {}", Thread.currentThread().getName());
-		
 		while(runable) {
 			try {
 				dispatcher(requestQueue.take());

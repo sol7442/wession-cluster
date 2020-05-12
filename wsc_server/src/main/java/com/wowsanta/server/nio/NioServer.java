@@ -13,13 +13,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import com.wowsanta.server.Connection;
 import com.wowsanta.server.ConnectionFactory;
-import com.wowsanta.server.RequestHandler;
-import com.wowsanta.server.HandlerFactory;
 import com.wowsanta.server.Request;
 import com.wowsanta.server.Server;
 import com.wowsanta.server.ServerException;
@@ -36,17 +33,13 @@ public class NioServer extends Server implements  Runnable {
 	String ipAddr;
 	int port;
 	int core;
-	int threadSize     = 5;
-	int processTimeout = 1000;
-	int queueSize      = 100;
+	
+	int processTimeout;
+	int threadSize    ;
+	int queueSize     ;
 		
-//	String processHandlerClass;
-//	String connectionHandlerClass;
-//	transient HandlerFactory handler_factory = new HandlerFactory();
 	transient ExecutorService server_excutor;
 	transient ExecutorService service_excutor;
-	
-	//transient ConnectionHandler connectionHandler;
 	
 	String connectionFactoryClass;
 	String requestHandlerClass;
@@ -54,7 +47,6 @@ public class NioServer extends Server implements  Runnable {
 	
 	
 	transient ConnectionFactory connectionFactory;
-	transient RequestHandler 	requestHandler;
 	transient ServiceDispatcher serviceDispatcher;
 	
 	
@@ -64,11 +56,11 @@ public class NioServer extends Server implements  Runnable {
 	
 	@Override
 	public boolean initialize() {
-		server_excutor  = Executors.newSingleThreadExecutor();
-		service_excutor = Executors.newFixedThreadPool(threadSize);
-		rquestQueue = new ArrayBlockingQueue<Request>(queueSize);
-		
 		try {
+			server_excutor  = Executors.newSingleThreadExecutor();
+			service_excutor = Executors.newFixedThreadPool(threadSize);
+			rquestQueue = new ArrayBlockingQueue<Request>(queueSize);
+
 			
 			this.connectionFactory = (ConnectionFactory) Class.forName(connectionFactoryClass).newInstance();
 			this.serviceDispatcher = (ServiceDispatcher) Class.forName(serviceDispatcherClass).newInstance();
@@ -103,12 +95,6 @@ public class NioServer extends Server implements  Runnable {
 		} catch (Exception e) {
 			log.error("Server Handler Class Error : " + e.getMessage(), e);
 		} 
-//
-//
-//		if(this.serviceDispatcher != null) {
-//			server_excutor.execute(this);
-//			service_excutor.execute(serviceDispatcher);	
-//		}
 	}
 
 	@Override
@@ -153,7 +139,6 @@ public class NioServer extends Server implements  Runnable {
 
 			log.info("server  : {}", serverSocket);
 			serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-			log.info("server register : {}",new Date());
 			
 			while ( selector.select() > 0) {
 				Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
@@ -193,18 +178,20 @@ public class NioServer extends Server implements  Runnable {
 	}
 
 	private void receive(final Selector selector, SelectionKey key) {
-		NioConnection connection = null;
+		
+		NioConnection connection = (NioConnection) key.attachment();
 		try {
-			connection = (NioConnection) key.attachment();
-			int size = connection.read0();
-			if (size == -1) {
-				log.info(" Connection closed by client : {}", connection.client.socket().getRemoteSocketAddress());
+			if (connection.read0() == -1) {
 				connection.close();
-				return;
+				log.info(" Connection closed by client : {}", connection.client.socket().getRemoteSocketAddress());
 			}
-		} catch (Exception e) {
-			connection.close();
-			log.info(" Connection finished by client : {}", connection.client.socket().getRemoteSocketAddress());
+		}catch (Exception e) {
+			log.error("Connection Receive ERROR : ",e);
+			try {
+				connection.close();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
 
@@ -215,7 +202,6 @@ public class NioServer extends Server implements  Runnable {
 			channel.configureBlocking(false);
 
 			Connection connection = connectionFactory.build(channel);
-			log.info("Connected to : {} ", channel.socket().getRemoteSocketAddress());
 
 			channel.register(selector, SelectionKey.OP_READ, connection);
 

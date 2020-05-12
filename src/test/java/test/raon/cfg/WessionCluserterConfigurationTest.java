@@ -3,15 +3,14 @@ package test.raon.cfg;
 import org.junit.Test;
 
 import com.wowsanta.wession.cluster.ClusterServiceDispathcer;
-import com.wowsanta.server.ServiceDispatcher;
-import com.wowsanta.wession.cluster.ClusterRepository;
+import com.wowsanta.server.nio.NioServer;
 import com.wowsanta.wession.cluster.ClusterConnectionFactory;
-import com.wowsanta.wession.cluster.ClusterRequestHandler;
+import com.wowsanta.wession.cluster.ClusterNode;
 import com.wowsanta.wession.impl.WessionLancher;
 import com.wowsanta.wession.impl.server.RaonInterfaceServer;
-import com.wowsanta.wession.impl.server.RaonSessionHandler;
 import com.wowsanta.wession.impl.session.RaonSession;
 import com.wowsanta.wession.index.IndexRepository;
+import com.wowsanta.wession.manager.ClusterManager;
 
 public class WessionCluserterConfigurationTest {
 	
@@ -26,26 +25,38 @@ public class WessionCluserterConfigurationTest {
 		server.setPort(5050);
 		server.setCore(2);
 		
+		ClusterManager cluseter_manager = ClusterManager.getInstance();
+		NioServer cluser_server = new NioServer();
+		cluser_server.setIpAddr("127.0.0.1");
+		cluser_server.setPort(5051);
+		cluser_server.setCore(2);
 		
-		ClusterRepository   cluster = new ClusterRepository();
-		cluster.setIpAddr("127.0.0.1");
-		cluster.setPort(5051);
-		cluster.setCore(2);
+		cluser_server.setConnectionFactoryClass(ClusterConnectionFactory.class.getName());
+		cluser_server.setServiceDispatcherClass(ClusterServiceDispathcer.class.getName());
+		cluser_server.setThreadSize(10);
+		cluser_server.setQueueSize(10);
 		
-		//ServiceDispatcher service = new ClusterServiceDispathcer();
-		//ClusterConnectionFactory factory = new ClusterConnectionFactory();
+		ClusterNode node1 = new ClusterNode();
+		node1.setName("dev_02");
+		node1.setAddress("127.0.0.1");
+		node1.setPort(5051);
+		node1.setMaxIdle(5);
+		node1.setMinIdle(2);
+		node1.setTestWhileIdle(false);
 		
-		cluster.setConnectionFactoryClass(ClusterConnectionFactory.class.getName());
-		cluster.setServiceDispatcherClass(ClusterServiceDispathcer.class.getName());
-
-		w.setClusterServer(cluster);
+		cluseter_manager.addNode(node1);
+		
+		
+		cluseter_manager.setClusterServer(cluser_server);
+		
+		w.setClusterManger(cluseter_manager);
 		
 		IndexRepository  index = new IndexRepository();
 		index.getKeyList().add("name");
 		index.getKeyList().add("userId");
 		index.setWessionClassName(RaonSession.class.getName());
 
-		w.setInterfaceServer(server);
+		//w.setInterfaceServer(server);
 		w.setIndexService(index);
 		
 		w.save(file_name);
@@ -53,7 +64,7 @@ public class WessionCluserterConfigurationTest {
 		System.out.println(w.toString(true));
 	}
 	
-	//@Test
+	@Test
 	public void load_test() {
 		WessionLancher w = WessionLancher.load(file_name, WessionLancher.class);
 		

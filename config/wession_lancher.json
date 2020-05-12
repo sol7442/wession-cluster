@@ -5,24 +5,34 @@
       "ipAddr": "127.0.0.1",
       "port": 5050,
       "core": 2,
-      "threadSize": 10,
-      "processTimeout": 1000,
-      "queueSize": 100
+      "processTimeout": 0,
+      "threadSize": 0,
+      "queueSize": 0
     }
   },
-  "clusterServer": {
-    "confClass": "com.wowsanta.wession.cluster.ClusterRepository",
-    "confValue": {
-      "nodes": [],
+  "clusterManger": {
+    "clusterServer": {
       "ipAddr": "127.0.0.1",
-      "port": 5051,
+      "port": 6050,
       "core": 2,
+      "processTimeout": 0,
       "threadSize": 10,
-      "processTimeout": 1000,
-      "queueSize": 100,
+      "queueSize": 10,
       "connectionFactoryClass": "com.wowsanta.wession.cluster.ClusterConnectionFactory",
       "serviceDispatcherClass": "com.wowsanta.wession.cluster.ClusterServiceDispathcer"
-    }
+    },
+    "nodes": [
+      {
+        "name": "dev_02",
+        "address": "127.0.0.1",
+        "port": 6050,
+        "maxIdle": 5,
+        "minIdle": 2,
+        "testWhileIdle": false,
+        "testOnCreate": true
+      }
+    ],
+    "threadCount": 0
   },
   "indexService": {
     "keyList": [

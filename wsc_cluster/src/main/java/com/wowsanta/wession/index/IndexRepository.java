@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.wowsanta.wession.message.SearchRequest;
+import com.wowsanta.wession.message.SearchMessage;
 import com.wowsanta.wession.message.SearchResponse;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
@@ -83,7 +83,7 @@ public class IndexRepository implements WessionRepository<Wession> {
 	}
 
 	@Override
-	public SearchResponse search(SearchRequest request)throws RespositoryException{
+	public SearchResponse search(SearchMessage request)throws RespositoryException{
 		SearchResponse response = new SearchResponse();
 		String filter = request.getFilter();
 		String filter_key   = getFilterKey(filter);

@@ -8,7 +8,7 @@ import com.wowsanta.server.Request;
 import com.wowsanta.server.ServerException;
 import com.wowsanta.server.nio.NioConnection;
 import com.wowsanta.util.ObjectBuffer;
-import com.wowsanta.wession.message.WessionRequest;
+import com.wowsanta.wession.message.WessionMessage;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,14 +34,16 @@ public class ClusterConnection extends NioConnection {
 				readBuffer.mark();
 				log.debug("mark : {}", readBuffer);
 				
-				Request request = parse(readBuffer);
-				if(request == null) {
+				WessionMessage message = parse(readBuffer);
+				
+				if(message == null) {
 					readBuffer.reset();
 					log.debug("reset : {}", readBuffer);
 					break;
-					
 				}else{
+					Request request = message.getRequest();;
 					request.setConnection(this);
+					
 					rquestQueue.put(request);
 				}
 			}while(readBuffer.remaining() > 0);
@@ -68,11 +70,19 @@ public class ClusterConnection extends NioConnection {
 
 	@Override
 	public int write() throws ServerException {
-		// TODO Auto-generated method stub
-		return 0;
+		int size  =  -1;
+		try {
+			this.writeBuffer.flip();
+			size = this.client.write(this.writeBuffer);
+			this.writeBuffer.clear();
+		} catch (IOException e) {
+			log.error(e.getMessage(),e);
+			throw new ServerException(e.getMessage(),e);
+		}
+		return size;
 	}
 	
-	private Request parse(ByteBuffer buffer) throws IOException, ServerException {
+	private WessionMessage parse(ByteBuffer buffer) throws IOException, ServerException {
 		int length = buffer.getInt();
 		log.debug("read 1 : {}/{}", length,readBuffer);
 		if(length < 1) {
@@ -88,10 +98,9 @@ public class ClusterConnection extends NioConnection {
 			buffer.get(data);
 			log.debug("read 2 : {}/{}", data.length,readBuffer);
 			
-			return ObjectBuffer.toObject(data,WessionRequest.class);
+			return ObjectBuffer.toObject(data,WessionMessage.class);
 		} catch (ClassNotFoundException e) {
 			throw new ServerException("Request Deserialized Failed : " + e.getMessage() , e) ;
 		}
 	}
-	
 }

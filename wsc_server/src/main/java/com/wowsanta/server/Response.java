@@ -1,7 +1,8 @@
 package com.wowsanta.server;
 
-import java.io.Serializable;
 
-public interface Response extends Serializable {
-	public byte[] toBytes();
+public interface Response {
+	public Connection getConnection();
+	public void setConnection(Connection conn);
+	public void write() throws ServerException;
 }

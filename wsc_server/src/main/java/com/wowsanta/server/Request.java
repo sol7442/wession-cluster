@@ -1,10 +1,10 @@
 package com.wowsanta.server;
 
-import java.io.Serializable;
+import java.io.IOException;
 
-public interface Request extends Serializable {
+public interface Request {
 	public Connection getConnection();
 	public void setConnection(Connection conn);
 	
-	public void parse();
+	public void read() throws IOException;
 }
