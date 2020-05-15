@@ -13,28 +13,34 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper=false)
 public abstract class ServiceDispatcher extends JsonConfiguration implements Runnable {
 	
-	protected BlockingQueue<Request> requestQueue;
+	protected BlockingQueue<ServiceProcess<?,?>> requestQueue;
 	private boolean runable = true;
+
+	public void bindRquestQueue(BlockingQueue<ServiceProcess<?,?>> queue) {
+		this.requestQueue = queue;
+	}
 	
 	public void stop() {
 		runable = false;
 		requestQueue.notifyAll();
 	}
+	
 	public void run() {
-		log.debug("ServiceDispatcher : RUN - {}", Thread.currentThread().getName());
+		log.debug("[{}]-{}", Thread.currentThread().getName(),this.getClass().getName());
 		while(runable) {
 			try {
-				dispatcher(requestQueue.take());
+				ServiceProcess<?,?> pocess = requestQueue.take();
+				
+				before(pocess);
+				dispatcher(pocess);
+				after(pocess);
+				
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				log.error(e.getMessage(),e);
 			}
 		}
-		
-		log.debug("finish service : {} ", Thread.currentThread().getName());
 	}
-	
-	public abstract void dispatcher(Request request);
-	public void bindRquestQueue(BlockingQueue<Request> queue) {
-		this.requestQueue = queue;
-	}
+	public abstract void before(ServiceProcess<?,?> request);
+	public abstract void dispatcher(ServiceProcess<?,?> request);
+	public abstract void after(ServiceProcess<?,?> request);
 }

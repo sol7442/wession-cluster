@@ -6,8 +6,8 @@ import java.util.Set;
 import com.wowsanta.wession.cluster.ClusterRepository;
 import com.wowsanta.wession.core.CoreRepository;
 import com.wowsanta.wession.index.IndexRepository;
-import com.wowsanta.wession.message.SearchMessage;
-import com.wowsanta.wession.message.SearchResponse;
+import com.wowsanta.wession.message.SearchRequestMessage;
+import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
 import com.wowsanta.wession.session.WessionRepository;
@@ -25,7 +25,7 @@ public class WessionCluster implements WessionRepository<Wession> {
 	
 	Set<WessionRepository<Wession>> repositoris = new HashSet<>();
 	
-	public WessionCluster getInstance() {
+	public static WessionCluster getInstance() {
 		if(instance == null) {
 			instance = new WessionCluster();
 		}
@@ -36,14 +36,17 @@ public class WessionCluster implements WessionRepository<Wession> {
 	public void setCoreRepository(CoreRepository coreRepository) {
 		this.coreRepository = coreRepository;
 		this.repositoris.add(coreRepository);
+		log.info("add repository : {}", coreRepository.getClass().getName());
 	}
 	public void setIndexRepository(IndexRepository indexRepository) {
 		this.indexRepository = indexRepository;
 		this.repositoris.add(indexRepository);
+		log.info("add repository : {}", indexRepository.getClass().getName());
 	}
 	public void setClusterRepository(ClusterRepository clusterRepository) {
 		this.clusterRepository = clusterRepository;
 		this.repositoris.add(clusterRepository);
+		log.info("add repository : {}", clusterRepository.getClass().getName());
 	}
 	
 	
@@ -51,6 +54,7 @@ public class WessionCluster implements WessionRepository<Wession> {
 	public void create(Wession s) throws RespositoryException {
 		log.debug("creat:{}",s.getKey());
 		for (WessionRepository<Wession> repository : repositoris) {
+			log.debug("repository :  {} " ,repository);
 			repository.create(s);
 		}
 		log.info("creat:{}",s);
@@ -81,8 +85,8 @@ public class WessionCluster implements WessionRepository<Wession> {
 	}
 
 	@Override
-	public SearchResponse search(SearchMessage request)throws RespositoryException{
-		SearchResponse response = null;
+	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
+		SearchResponseMessage response = null;
 		if(isIndexSearch(request.getFilter())) {
 			response = indexRepository.search(request);
 		}else {

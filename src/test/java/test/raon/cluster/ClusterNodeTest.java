@@ -7,9 +7,9 @@ import java.util.concurrent.Executors;
 
 import org.junit.Test;
 
+import com.wowsanta.raon.impl.session.RaonSession;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.cluster.ClusterNode;
-import com.wowsanta.wession.impl.session.RaonSession;
 import com.wowsanta.wession.repository.RespositoryException;
 
 public class ClusterNodeTest {

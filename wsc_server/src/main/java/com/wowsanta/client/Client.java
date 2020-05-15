@@ -3,8 +3,6 @@ package com.wowsanta.client;
 import java.io.IOException;
 
 import com.wowsanta.server.Message;
-import com.wowsanta.server.Request;
-import com.wowsanta.server.Response;
 import com.wowsanta.util.config.JsonConfiguration;
 
 import lombok.Data;

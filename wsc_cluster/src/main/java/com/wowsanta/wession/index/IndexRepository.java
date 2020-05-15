@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.wowsanta.wession.message.SearchMessage;
-import com.wowsanta.wession.message.SearchResponse;
+import com.wowsanta.wession.message.SearchRequestMessage;
+import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
 import com.wowsanta.wession.session.WessionRepository;
@@ -83,18 +83,20 @@ public class IndexRepository implements WessionRepository<Wession> {
 	}
 
 	@Override
-	public SearchResponse search(SearchMessage request)throws RespositoryException{
-		SearchResponse response = new SearchResponse();
+	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
+		SearchResponseMessage response = new SearchResponseMessage();
 		String filter = request.getFilter();
 		String filter_key   = getFilterKey(filter);
 		String filter_value = getFilterValue(filter);
 		
 		log.debug("index.search : {}-{} ", filter_key, filter_value);
-
 		IndexNode node = indexNodes.get(filter_key);
+		log.debug("index.node : {}-{} ", filter_key, node);
 		
-		response.setTotalResults(size());
-		response.setResources(node.list(filter_value));
+		if(node != null) {
+			response.setResources(node.list(filter_value));			
+		}
+
 		
 		return response;
 	}

@@ -8,9 +8,9 @@ import java.util.Random;
 import org.junit.Test;
 
 import com.wowsanta.client.nio.NioClient;
+import com.wowsanta.raon.impl.session.RaonSession;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.cluster.ClusterClient;
-import com.wowsanta.wession.impl.session.RaonSession;
 import com.wowsanta.wession.message.CreateMessage;
 
 public class ClientTest {

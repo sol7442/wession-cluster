@@ -30,7 +30,6 @@ public class ClusterManager extends ClusterRepository{
 	private transient boolean initialized = false;
 	
 	private NioServer clusterServer;
-	private Set<ClusterNode> nodes = new HashSet<>();
 
 	
 	public static ClusterManager getInstance() {
@@ -48,9 +47,13 @@ public class ClusterManager extends ClusterRepository{
 			for (ClusterNode cluster_node : nodes) {
 				cluster_node.initialize();
 				try {
-					
 					RegisterMessage message = cluster_node.register();
-					
+					if(message != null) {
+						cluster_node.setActive(true); 
+					}else {
+						cluster_node.setActive(false);
+					}
+				
 					log.info("register result : {}",message);
 				} catch (RespositoryException e) {
 					log.error(e.getMessage(), e);
@@ -58,22 +61,12 @@ public class ClusterManager extends ClusterRepository{
 				}
 			}
 			
-			initialized = true;
+			initialized = super.initialize(threadCount);
 		}
 		return initialized;
 	}
 
-	@Override
-	public ClusterNode[] getNodeArray() {
-		ClusterNode[] node_array = null;
-		readLock.lock();
-		try {
-			node_array = new ClusterNode[nodes.size()] ;
-			return nodes.toArray(node_array);
-		}finally {
-			readLock.unlock();
-		}
-	}
+	
 	public void removeNode(String name) {
 		writeLock.lock();
 		try {

@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 
 import com.wowsanta.server.Request;
 import com.wowsanta.server.ServerException;
+import com.wowsanta.server.ServiceProcess;
 import com.wowsanta.server.nio.NioConnection;
 import com.wowsanta.util.ObjectBuffer;
 import com.wowsanta.wession.message.WessionMessage;
@@ -14,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ClusterConnection extends NioConnection {
-	protected BlockingQueue<Request> rquestQueue ;
 	
 	@Override
 	public int read() throws ServerException {
@@ -41,10 +41,7 @@ public class ClusterConnection extends NioConnection {
 					log.debug("reset : {}", readBuffer);
 					break;
 				}else{
-					Request request = message.getRequest();;
-					request.setConnection(this);
-					
-					rquestQueue.put(request);
+					rquestQueue.put(createProcess(message));
 				}
 			}while(readBuffer.remaining() > 0);
 			
@@ -68,6 +65,40 @@ public class ClusterConnection extends NioConnection {
 		return size;
 	}
 
+	private ServiceProcess<?,?> createProcess(WessionMessage message) {
+		AbstractClusterProcess process = null;
+		switch (message.getMessageType()) {
+		case REGISTER:
+			process = new RegisterProcess(message);
+			break;
+		case CREATE:
+			process = new CreateProcess(message);
+			break;
+		case UPDATE:
+			process = new UpdateProcess(message);
+			break;
+		case DELETE:
+			process = new DeleteProcess(message);
+			break;
+		default:
+			process = new ErrorProcess(message);
+			break;
+		}
+
+		process.setConnection(this);
+
+		return process;
+	}
+
+	@Override
+	public void write(byte[] data) throws ServerException {
+		try {
+			this.writeBuffer.put(data);
+		}catch (Exception e) {
+			log.error(e.getMessage(),e);
+			throw new ServerException(e.getMessage(),e);
+		}
+	}
 	@Override
 	public int write() throws ServerException {
 		int size  =  -1;

@@ -12,8 +12,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.wowsanta.wession.message.CreateMessage;
-import com.wowsanta.wession.message.SearchMessage;
-import com.wowsanta.wession.message.SearchResponse;
+import com.wowsanta.wession.message.SearchRequestMessage;
+import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.message.UpdateMessage;
 import com.wowsanta.wession.message.WessionMessage;
 import com.wowsanta.wession.repository.RespositoryException;
@@ -31,50 +31,48 @@ public abstract class ClusterRepository implements WessionRepository<Wession> {
 	transient protected BlockingQueue<WessionMessage> requestQueue ;
 	private transient ThreadPoolExecutor executor;
 	
-	private int threadCount;
+	protected Set<ClusterNode> nodes = new HashSet<>();
 	
+	protected int threadCount;
 	public boolean initialize(int size) {
 		int core_size  = size + 1;
 		int max_size   = core_size * 3;
 		int queue_size = core_size * 5;
 		
-		executor     = new ThreadPoolExecutor(core_size, max_size, 10,TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(queue_size));
+		executor = new ThreadPoolExecutor(core_size, max_size, 10,TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(queue_size));
 		
 		return true;
 	}
-	public abstract ClusterNode[] getNodeArray();
 	
 	public abstract class NodeWorker implements Runnable{
-		private ClusterNode[] node_array ;
-		public NodeWorker() {
-			node_array = getNodeArray();
-		}
 		public void run() {
-			log.debug("node sie : {} ", node_array.length);
-			for (ClusterNode node : node_array) {
-				try {
-					work(node);
-				} catch (RespositoryException e) {
-					log.error("{}:{}", node.getName(), e.getMessage(), e);
+			for (ClusterNode node : nodes) {
+				if(node.isActive()) {
+					try {
+						work(node);
+					} catch (RespositoryException e) {
+						log.error(e.getMessage(), e);
+						node.setActive(false);
+					}
 				}
 			}
 		}
-		public abstract void work(ClusterNode node) throws RespositoryException ;
+		public abstract void work(ClusterNode node)throws RespositoryException ;
 	}
-	
 	@Override
-	public void create(Wession s) throws RespositoryException {
+	public void create(Wession session) throws RespositoryException {
+		log.debug("cluster.create : {} ", session);
 		try {
 			executor.execute(new NodeWorker() {
+				@Override
 				public void work(ClusterNode node) throws RespositoryException {
-					node.create(s);
+					node.create(session);
 				}
 			});
-
 		} catch (Exception e) {
 			throw new RespositoryException(e.getMessage(), e);
 		}
-		log.debug("cluster.create : {} ", s.getKey());
+		
 	}
 
 	@Override
@@ -113,7 +111,7 @@ public abstract class ClusterRepository implements WessionRepository<Wession> {
 	}
 
 	@Override
-	public SearchResponse search(SearchMessage r)throws RespositoryException{
+	public SearchResponseMessage search(SearchRequestMessage r)throws RespositoryException{
 		return null;
 	}
 	@Override

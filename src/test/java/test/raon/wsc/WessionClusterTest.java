@@ -7,14 +7,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.wowsanta.raon.impl.session.RaonSession;
 import com.wowsanta.wession.WessionCluster;
 import com.wowsanta.wession.cluster.ClusterNode;
 import com.wowsanta.wession.cluster.ClusterRepository;
 import com.wowsanta.wession.core.CoreRepository;
-import com.wowsanta.wession.impl.session.RaonSession;
 import com.wowsanta.wession.index.IndexRepository;
-import com.wowsanta.wession.message.SearchMessage;
-import com.wowsanta.wession.message.SearchResponse;
+import com.wowsanta.wession.message.SearchRequestMessage;
+import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 
 public class WessionClusterTest {
@@ -63,8 +63,8 @@ public class WessionClusterTest {
 		RaonSession session2 = create(session_key + 2,"USER1","tester2");
 		RaonSession session3 = create(session_key + 3,"USER3","tester2");
 		
-		SearchMessage  request  = new SearchMessage();
-		SearchResponse response = null;
+		SearchRequestMessage  request  = new SearchRequestMessage();
+		SearchResponseMessage response = null;
 		try {
 			System.out.println("[search]-----------------------------");
 

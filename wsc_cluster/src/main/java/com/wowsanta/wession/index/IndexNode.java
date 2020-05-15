@@ -7,8 +7,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.wowsanta.wession.message.SearchMessage;
-import com.wowsanta.wession.message.SearchResponse;
+import com.wowsanta.wession.message.SearchRequestMessage;
+import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
 import com.wowsanta.wession.session.WessionRepository;
@@ -46,7 +46,13 @@ public class IndexNode implements WessionRepository<Wession>{
 		}
 	}
 	public List<Wession> list(String index_key) throws RespositoryException {
-		log.debug("index.list.{}.{}={} ", keyName,index_key,cache.get(index_key).size());
+		
+		List<Wession> list = cache.get(index_key);
+		if(list == null) {
+			list = new ArrayList<>();
+		}
+		
+		log.debug("index.list.{}.{}/{} ", keyName,index_key,list.size());
 		return cache.get(index_key);
 	}
 	@Override
@@ -87,7 +93,7 @@ public class IndexNode implements WessionRepository<Wession>{
 		log.debug("index.remove.{} : {} ", keyName, index_key);		
 	}
 	@Override
-	public SearchResponse search(SearchMessage r)throws RespositoryException{
+	public SearchResponseMessage search(SearchRequestMessage r)throws RespositoryException{
 		// TODO Auto-generated method stub
 		return null;
 	}

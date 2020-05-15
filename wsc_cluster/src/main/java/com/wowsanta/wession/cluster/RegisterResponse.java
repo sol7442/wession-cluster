@@ -4,6 +4,7 @@ package com.wowsanta.wession.cluster;
 import java.io.IOException;
 
 import com.wowsanta.server.Connection;
+import com.wowsanta.server.Message;
 import com.wowsanta.server.Response;
 import com.wowsanta.server.ServerException;
 import com.wowsanta.server.nio.NioConnection;
@@ -20,7 +21,6 @@ public class RegisterResponse extends RegisterMessage implements Response {
 	
 	private Connection connection;
 	
-	@Override
 	public void write() throws  ServerException {
 		try {
 			NioConnection con = (NioConnection) connection;
@@ -34,5 +34,11 @@ public class RegisterResponse extends RegisterMessage implements Response {
 		} catch (IOException e) {
 			throw new ServerException(e.getMessage(),e);
 		}
+	}
+
+	@Override
+	public Message getMessage() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

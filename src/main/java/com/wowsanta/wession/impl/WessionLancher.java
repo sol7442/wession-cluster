@@ -3,8 +3,10 @@ package com.wowsanta.wession.impl;
 import com.wowsanta.daemon.DaemonService;
 import com.wowsanta.server.Server;
 import com.wowsanta.util.config.JsonConfiguration;
+import com.wowsanta.wession.WessionCluster;
 import com.wowsanta.wession.index.IndexRepository;
 import com.wowsanta.wession.manager.ClusterManager;
+import com.wowsanta.wession.manager.CoreManager;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,8 +21,9 @@ public class WessionLancher extends JsonConfiguration implements DaemonService {
 		JsonConfiguration.addTypeAdapter(Server.class);
 	}
 	
+	Server	interfaceServer;
 	
-	//Server	interfaceServer;
+	CoreManager     coreManager;
 	ClusterManager  clusterManger;
 	IndexRepository indexService;
 	
@@ -34,21 +37,28 @@ public class WessionLancher extends JsonConfiguration implements DaemonService {
 	}
 	@Override
 	public boolean initialize(String config) {
-
-		//interfaceServer.initialize();
+		coreManager = CoreManager.getInstance();
+		
+		interfaceServer.initialize();
+		
 		clusterManger.initialize();
+		coreManager.initialize();
 		indexService.initialize();
+		
+		WessionCluster.getInstance().setClusterRepository(clusterManger);
+		WessionCluster.getInstance().setCoreRepository(coreManager);
+		WessionCluster.getInstance().setIndexRepository(indexService);
 		
 		return true;
 	}
 
 	@Override
 	public void start() {
-		//interfaceServer.start();
+		interfaceServer.start();
 	}
 
 	@Override
 	public void stop() {
-		//interfaceServer.stop();
+		interfaceServer.stop();
 	}
 }

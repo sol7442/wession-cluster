@@ -6,9 +6,7 @@ import com.wowsanta.server.Connection;
 import com.wowsanta.server.ConnectionFactory;
 import com.wowsanta.server.ServerException;
 
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class ClusterConnectionFactory extends ConnectionFactory {
 	private int bufferSize = 1024;
 	
@@ -17,10 +15,8 @@ public class ClusterConnectionFactory extends ConnectionFactory {
 		ClusterConnection connection = new ClusterConnection();
 		connection.initialize(bufferSize);
 		connection.setClient(channel);
-		connection.rquestQueue = this.requestQueue;
+		connection.setRquestQueue(this.requestQueue);
 		
-		log.info("Connected to : {} ", connection);
-
 		return connection;
 	}
 }

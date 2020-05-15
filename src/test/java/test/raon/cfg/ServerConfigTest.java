@@ -2,9 +2,9 @@ package test.raon.cfg;
 
 import org.junit.Test;
 
-import com.wowsanta.wession.impl.WessionLancher;
-import com.wowsanta.wession.impl.server.RaonInterfaceServer;
-import com.wowsanta.wession.impl.server.RaonSessionHandler;
+import com.wowsanta.wession.impl.server.RaonSessionServer;
+import com.wowsanta.wession.impl.server.RaonSessionServiceDispatcher;
+import com.wowsanta.wession.impl.server.WessionLancher;
 
 public class ServerConfigTest {
 	
@@ -13,11 +13,11 @@ public class ServerConfigTest {
 	@Test
 	public void create_test() {
 		WessionLancher w = new WessionLancher();
-		RaonInterfaceServer server = new RaonInterfaceServer();
+		RaonSessionServer server = new RaonSessionServer();
 		server.setIpAddr("127.0.0.1");
 		server.setPort(5050);
 		server.setCore(2);
-		server.setProcessHandlerClass(RaonSessionHandler.class.getName());
+		server.setProcessHandlerClass(RaonSessionServiceDispatcher.class.getName());
 		
 		//w.setServer(server);
 		w.save(file_name);

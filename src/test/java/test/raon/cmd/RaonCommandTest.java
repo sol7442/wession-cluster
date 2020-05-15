@@ -4,8 +4,8 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import com.wowsanta.wession.impl.session.RaonCommand;
-import com.wowsanta.wession.impl.session.SessionServerCommand;
+import com.wowsanta.raon.impl.session.RaonCommand;
+import com.wowsanta.raon.impl.session.SessionServerCommand;
 
 public class RaonCommandTest {
 

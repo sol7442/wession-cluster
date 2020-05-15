@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.wowsanta.wession.message.SearchMessage;
-import com.wowsanta.wession.message.SearchResponse;
+import com.wowsanta.wession.message.SearchRequestMessage;
+import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.message.WessionMessage;
 import com.wowsanta.wession.message.WessionResponse;
 import com.wowsanta.wession.repository.RespositoryException;
@@ -49,8 +49,8 @@ public class CoreRepository implements WessionRepository<Wession> {
 	}
 
 	@Override
-	public SearchResponse search(SearchMessage request)throws RespositoryException{
-		SearchResponse response = new SearchResponse();
+	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
+		SearchResponseMessage response = new SearchResponseMessage();
 		
 		List<Wession> core_list = new ArrayList<Wession>(core.values());
 		List<Wession> result_list = new ArrayList<Wession>();
