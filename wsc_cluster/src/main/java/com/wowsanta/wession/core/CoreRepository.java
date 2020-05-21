@@ -5,47 +5,48 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
-import com.wowsanta.wession.message.WessionMessage;
-import com.wowsanta.wession.message.WessionResponse;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
 import com.wowsanta.wession.session.WessionRepository;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class CoreRepository implements WessionRepository<Wession> {
 
 	ConcurrentMap<String,Wession> core = new ConcurrentHashMap<>();
 	
+	public boolean initialize() {
+		LOG.system().info("CoreRepository : {} ", true);
+		return true;
+	}
+	
 	@Override
-	public void create(Wession s) throws RespositoryException {
-		if(s == null) {
+	public void create(Wession session) throws RespositoryException {
+		if(session == null) {
 			throw new RespositoryException("NULL VALUE");
 		}
 		
-		core.putIfAbsent(s.getKey(),s);
-		log.debug("core.create : {} ", s.getKey());
+		core.putIfAbsent(session.getKey(),session);
+		LOG.process().debug("create.core : {} ", session.getKey());
 	}
 
 	@Override
 	public Wession read(String key) throws RespositoryException {
-		log.debug("core.read : {} ", key);
+		LOG.process().debug("core.read : {} ", key);
 		return core.get(key);
 	}
 
 	@Override
-	public void update(Wession s) throws RespositoryException {
-		core.put(s.getKey(),s);
-		log.debug("core.update : {} ", s.getKey());
+	public void update(Wession session) throws RespositoryException {
+		core.put(session.getKey(),session);
+		LOG.process().debug("core.update : {} ", session.getKey());
 	}
 
 	@Override
-	public void delete(Wession s) throws RespositoryException {
-		log.debug("core.delete : {} ", s.getKey());
-		core.remove(s.getKey());
+	public void delete(Wession session) throws RespositoryException {
+		LOG.process().debug("core.delete : {} ", session.getKey());
+		core.remove(session.getKey());		
 	}
 
 	@Override
@@ -77,5 +78,7 @@ public class CoreRepository implements WessionRepository<Wession> {
 	public int size() {
 		return core.size();
 	}
+
+
 
 }

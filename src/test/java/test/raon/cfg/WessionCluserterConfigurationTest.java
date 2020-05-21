@@ -8,11 +8,12 @@ import com.wowsanta.server.nio.NioServer;
 import com.wowsanta.wession.cluster.ClusterConnectionFactory;
 import com.wowsanta.wession.cluster.ClusterNode;
 import com.wowsanta.wession.impl.server.RaonSessionServerConnectionFactory;
+import com.wowsanta.wession.impl.WessionLancher;
 import com.wowsanta.wession.impl.server.RaonSessionServer;
 import com.wowsanta.wession.impl.server.RaonSessionServiceDispatcher;
-import com.wowsanta.wession.impl.server.WessionLancher;
 import com.wowsanta.wession.index.IndexRepository;
 import com.wowsanta.wession.manager.ClusterManager;
+import com.wowsanta.wession.manager.IndexManager;
 
 public class WessionCluserterConfigurationTest {
 	
@@ -54,20 +55,20 @@ public class WessionCluserterConfigurationTest {
 		node1.setMinIdle(2);
 		node1.setTestWhileIdle(false);
 		
-		cluseter_manager.addNode(node1);
+		cluseter_manager.setClusterNode(node1);
 		
 		
 		cluseter_manager.setClusterServer(cluser_server);
 		
 		w.setClusterManger(cluseter_manager);
 		
-		IndexRepository  index = new IndexRepository();
+		IndexManager  index = IndexManager.getInstance();
 		index.getKeyList().add("name");
 		index.getKeyList().add("userId");
 		index.setWessionClassName(RaonSession.class.getName());
 
 		w.setInterfaceServer(session_server);
-		w.setIndexService(index);
+		w.setIndexManager(index);
 		
 		w.save(file_name);
 		

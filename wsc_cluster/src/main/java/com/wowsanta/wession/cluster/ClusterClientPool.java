@@ -7,10 +7,9 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 import com.wowsanta.client.nio.NioClient;
+import com.wowsanta.logger.LOG;
 
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class ClusterClientPool extends BasePooledObjectFactory<NioClient> {
 	private final String address;
 	private final int port;
@@ -21,7 +20,10 @@ public class ClusterClientPool extends BasePooledObjectFactory<NioClient> {
 	
 	@Override
 	public NioClient create() throws Exception {
-		return new ClusterClient(this.address, this.port);
+		ClusterClient clinet = new ClusterClient(this.address, this.port);
+		
+		LOG.application().info("create client : {}", clinet);
+		return clinet;
 	}
 
 	@Override
@@ -37,7 +39,7 @@ public class ClusterClientPool extends BasePooledObjectFactory<NioClient> {
         	client = pooledObject.getObject();
         	vailedate = client.connect();
 		} catch (IOException e) {
-			log.error("{} : {}", client, e.getMessage());
+			LOG.system().info("{} : {}", client, e.getMessage());
 		}
         return vailedate; 
         		

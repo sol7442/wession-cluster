@@ -3,6 +3,7 @@ package com.wowsanta.wession.impl.server;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.raon.impl.message.HellowRequestMessage;
 import com.wowsanta.raon.impl.message.RegisterRequestMessage;
@@ -26,9 +27,6 @@ import com.wowsanta.server.ServiceProcess;
 import com.wowsanta.server.nio.NioConnection;
 import com.wowsanta.util.Hex;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class RaonSessionConnection extends NioConnection {
 
 	@Override
@@ -36,25 +34,26 @@ public class RaonSessionConnection extends NioConnection {
 		int size = -1;
 		try {
 			size = client.read(readBuffer);
-			log.debug("read 0 : {}/{}", size,readBuffer);
+			LOG.application().debug("read 0 : {}/{}", size,readBuffer);
 			
 			if(size <= 0) {
 				return size;
 			}
 
 			readBuffer.flip();
-			log.debug("flip : {}", readBuffer);
+			LOG.application().debug("flip : {}", readBuffer);
 			
 			do {
 				readBuffer.mark();
-				log.debug("mark : {}", readBuffer);
+				LOG.application().debug("mark : {}", readBuffer);
 				
 				ServiceProcess<?,?> process = parse(readBuffer);
 				if(process == null) {
 					readBuffer.reset();
-					log.debug("reset : {}", readBuffer);
+					LOG.application().debug("reset : {}", readBuffer);
 					break;
 				}else{
+					LOG.application().debug("recive : {}", process.getRequest().getMessage());
 					rquestQueue.put(process);
 				}
 			}while(readBuffer.remaining() > 0);
@@ -63,13 +62,13 @@ public class RaonSessionConnection extends NioConnection {
 			readBuffer.clear();
 			throw new ServerException(e.getMessage(),e);
 		}finally {
-			log.debug("finally : {}/{}", readBuffer  ,readBuffer.remaining());
+			LOG.application().debug("finally : {}/{}", readBuffer  ,readBuffer.remaining());
 			if(readBuffer.remaining() == 0) {
 				readBuffer.clear();
-				log.debug("clear : {}/{}", readBuffer  ,readBuffer.remaining());
+				LOG.application().debug("clear : {}/{}", readBuffer  ,readBuffer.remaining());
 			}else {
 				readBuffer.compact();
-				log.debug("compact : {}/{}", readBuffer,readBuffer.remaining());
+				LOG.application().debug("compact : {}/{}", readBuffer,readBuffer.remaining());
 			}
 			
 		}
@@ -81,7 +80,7 @@ public class RaonSessionConnection extends NioConnection {
 		AbstractSessionProcess process = null;
 				
 		int command = buffer.getInt();
-		log.debug("command : {} ", Hex.toHexString(command));
+		LOG.application().debug("command : {} ", Hex.toHexString(command));
 		
 		switch (command) {
 		case 1:
@@ -136,7 +135,7 @@ public class RaonSessionConnection extends NioConnection {
 			size = this.client.write(this.writeBuffer);
 			this.writeBuffer.clear();
 		} catch (IOException e) {
-			log.error(e.getMessage(),e);
+			LOG.application().error(e.getMessage(),e);
 			throw new ServerException(e.getMessage(),e);
 		}
 		return size;
@@ -147,7 +146,7 @@ public class RaonSessionConnection extends NioConnection {
 		try {
 			this.writeBuffer.put(data);
 		}catch (Exception e) {
-			log.error(e.getMessage(),e);
+			LOG.application().error(e.getMessage(),e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

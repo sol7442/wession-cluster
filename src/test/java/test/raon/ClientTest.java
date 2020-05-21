@@ -26,7 +26,6 @@ public class ClientTest {
 			
 			RaonSession session = new RaonSession();
 			session.setKey(Hex.toHexString(new Random().nextInt()));
-			session.setName("RaionSession");
 			session.setUserId("tester1");
 			session.setCreateTime(new Date());
 			session.setModifyTime(new Date());

@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.server.ConnectionFactory;
 import com.wowsanta.server.Server;
 import com.wowsanta.server.ServerException;
@@ -23,12 +24,11 @@ import com.wowsanta.server.ServiceProcess;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
 
 @Data
-@Slf4j
 @EqualsAndHashCode(callSuper = false)
 public class NioServer extends Server implements  Runnable {
+	String name;
 	String ipAddr;
 	int port;
 	int core;
@@ -57,21 +57,23 @@ public class NioServer extends Server implements  Runnable {
 	@Override
 	public boolean initialize() {
 		try {
+			LOG.system().info("initialize : {} ==================== \n{}",this.name, toString(true));
 			serverExecutor  = Executors.newSingleThreadExecutor();
 			serviceExecutor = Executors.newFixedThreadPool(threadSize);
 			rquestQueue = new ArrayBlockingQueue<ServiceProcess<?,?>>(queueSize);
 
 			
-			this.connectionFactory = (ConnectionFactory) Class.forName(connectionFactoryClass).newInstance();
-			this.serviceDispatcher = (ServiceDispatcher) Class.forName(serviceDispatcherClass).newInstance();
 			
-			this.connectionFactory.bindRquestQueue(this.rquestQueue);
+			this.serviceDispatcher = (ServiceDispatcher) Class.forName(serviceDispatcherClass).newInstance();
 			this.serviceDispatcher.bindRquestQueue(this.rquestQueue);
 			
+			this.connectionFactory = (ConnectionFactory) Class.forName(connectionFactoryClass).newInstance();
+			this.connectionFactory.bindRquestQueue(this.rquestQueue);
+			this.connectionFactory.setBufferSize(bufferSize);
 			
 			return true;
 		} catch (Exception e) {
-			log.error("Server Handler Class Error : " + e.getMessage(), e);
+			LOG.system().error("Server Handler Class Error : " + e.getMessage(), e);
 		} 
 		
 		return false;
@@ -79,23 +81,25 @@ public class NioServer extends Server implements  Runnable {
 
 	@Override
 	public void start() {
-		log.info("SERVER START : {}", new Date());
 		try {
 			
-			this.connectionFactory = (ConnectionFactory) Class.forName(connectionFactoryClass).newInstance();
-			this.connectionFactory.bindRquestQueue(this.rquestQueue);
-			this.connectionFactory.setBufferSize(bufferSize);
-			
-			serverExecutor.execute(this);
 			for(int i=0; i<threadSize; i++) {
 				ServiceDispatcher serviceDispatcher = (ServiceDispatcher) Class.forName(serviceDispatcherClass).newInstance();
 				serviceDispatcher.bindRquestQueue(this.rquestQueue);
-				
 				serviceExecutor.execute(serviceDispatcher);
 			}
-			
+
+			selector = Selector.open();
+			serverSocket = ServerSocketChannel.open();		
+			serverSocket.configureBlocking(false);
+			serverSocket.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+			serverSocket.setOption(StandardSocketOptions.SO_RCVBUF, 1024 * 16 * 2);
+			serverSocket.bind(new InetSocketAddress(ipAddr, port));
+
+			LOG.system().info("{}/{}/{} - {}", this.getName(), serviceDispatcherClass, threadSize, new Date());
+			serverExecutor.execute(this);
 		} catch (Exception e) {
-			log.error("Server Handler Class Error : " + e.getMessage(), e);
+			LOG.application().error("Server Handler Class Error : " + e.getMessage(), e);
 		} 
 	}
 
@@ -106,40 +110,31 @@ public class NioServer extends Server implements  Runnable {
 		try {
 			serverSocket.close();
 			selector.close();
-			log.debug("close server");
+			LOG.application().debug("close server");
 		} catch (IOException e) {
-			log.error("SERVER CLOSE : ", e);
+			LOG.application().error("SERVER CLOSE : ", e);
 		}
 		
 		serverExecutor.shutdown();
 		try {
 			isTeminated = serverExecutor.awaitTermination(3, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			log.error("shutdown error : {} ",isTeminated, e);
+			LOG.application().error("shutdown error : {} ",isTeminated, e);
 		}
 		
 		serviceExecutor.shutdown();
 		try {
 			isTeminated = serviceExecutor.awaitTermination(3, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			log.error("shutdown error : {} ",isTeminated, e);
+			LOG.application().error("shutdown error : {} ",isTeminated, e);
 		}
 		
-		log.info("SERVER STOP {} : {}", isTeminated, new Date());
+		LOG.application().info("SERVER STOP {} : {}", isTeminated, new Date());
 	}
 
 	@Override
 	public void run() {
 		try {
-			selector = Selector.open();
-			serverSocket = ServerSocketChannel.open();		
-
-			serverSocket.configureBlocking(false);
-			serverSocket.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-			serverSocket.setOption(StandardSocketOptions.SO_RCVBUF, 1024 * 16 * 2);
-			serverSocket.bind(new InetSocketAddress(ipAddr, port));
-
-			log.info("server  : {}", serverSocket);
 			serverSocket.register(selector, SelectionKey.OP_ACCEPT);
 			
 			while ( selector.select() > 0) {
@@ -163,9 +158,9 @@ public class NioServer extends Server implements  Runnable {
 				}
 			}
 		} catch (IOException e) {
-			log.error("SERVER ERROR : {}",e.getMessage(),e);
+			LOG.system().error("SERVER ERROR : {}",e.getMessage(),e);
 		} finally {
-			log.info("finish server : {}", this);
+			LOG.system().info("finish server : {}/{}", this.getName(), new Date());
 		}
 	}
 
@@ -173,9 +168,9 @@ public class NioServer extends Server implements  Runnable {
 		try {
 			NioConnection connection = (NioConnection) key.attachment();
 			connection.client.register(selector, SelectionKey.OP_READ, connection);
-			log.debug("send : {} ", connection);
+			LOG.application().debug("send : {} ", connection);
 		} catch (IOException e) {
-			log.error("accept : ", e);
+			LOG.application().error("accept : ", e);
 		}
 	}
 
@@ -183,10 +178,10 @@ public class NioServer extends Server implements  Runnable {
 		NioConnection connection = (NioConnection) key.attachment();
 		try {
 			int read = connection.read0();
-			log.debug("key({}) receive : {}", key.hashCode(), read);
+			LOG.application().debug("key({}) receive : {} / {}", key.hashCode(),connection.getClient().getRemoteAddress(), read);
 			if (read == -1) {
 				connection.close();
-				log.info(" Connection closed by client : {}", connection.client.socket().getRemoteSocketAddress());
+				LOG.application().info(" Connection closed by client : {}", connection.client.socket().getRemoteSocketAddress());
 			}
 		}catch (Exception e) {
 			receive_error(connection, e);
@@ -194,11 +189,12 @@ public class NioServer extends Server implements  Runnable {
 	}
 
 	private void receive_error(NioConnection connection, Exception error) {
-		log.error("Connection Receive ERROR : {} ", error.getMessage() ,error);
 		try {
 			connection.close();
 		} catch (Exception e) {
-			log.error(e.getMessage(),e);
+			LOG.application().error(e.getMessage(),e);
+		}finally {
+			LOG.application().error("Connection Receive ERROR : {} ", error.getMessage());
 		}
 	}
 
@@ -209,14 +205,14 @@ public class NioServer extends Server implements  Runnable {
 			channel.configureBlocking(false);
 
 			NioConnection connection = (NioConnection) connectionFactory.build(channel);
-			log.debug("key({}) accept : {}", key.hashCode(), connection.getClient());
+			LOG.application().debug("key({}) accept : {}", key.hashCode(), connection.getClient());
 			
 			channel.register(selector, SelectionKey.OP_READ, connection);
 
 		} catch (IOException e) {
-			log.error("accept : ", e);
+			LOG.application().error("accept : ", e);
 		} catch (ServerException e) {
-			log.error("accept : ", e);
+			LOG.application().error("accept : ", e);
 		} 
 	}
 

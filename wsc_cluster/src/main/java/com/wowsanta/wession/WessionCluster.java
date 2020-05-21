@@ -3,18 +3,18 @@ package com.wowsanta.wession;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.wession.cluster.ClusterRepository;
 import com.wowsanta.wession.core.CoreRepository;
 import com.wowsanta.wession.index.IndexRepository;
+import com.wowsanta.wession.message.MessageType;
+import com.wowsanta.wession.message.ResultType;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
 import com.wowsanta.wession.session.WessionRepository;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class WessionCluster implements WessionRepository<Wession> {
 
 	static WessionCluster instance;
@@ -34,58 +34,71 @@ public class WessionCluster implements WessionRepository<Wession> {
 	
 	
 	public void setCoreRepository(CoreRepository coreRepository) {
-		this.coreRepository = coreRepository;
-		this.repositoris.add(coreRepository);
-		log.info("add repository : {}", coreRepository.getClass().getName());
+		LOG.system().info("{}", coreRepository);
+		if(coreRepository.initialize()) {
+			this.coreRepository = coreRepository;
+			this.repositoris.add(coreRepository);	
+		}
 	}
 	public void setIndexRepository(IndexRepository indexRepository) {
-		this.indexRepository = indexRepository;
-		this.repositoris.add(indexRepository);
-		log.info("add repository : {}", indexRepository.getClass().getName());
+		LOG.system().info("{}", indexRepository);
+		if(indexRepository.initialize()) {
+			this.indexRepository = indexRepository;
+			this.repositoris.add(indexRepository);	
+		}
 	}
 	public void setClusterRepository(ClusterRepository clusterRepository) {
-		this.clusterRepository = clusterRepository;
-		this.repositoris.add(clusterRepository);
-		log.info("add repository : {}", clusterRepository.getClass().getName());
+		LOG.system().info("{}", clusterRepository);
+		if(clusterRepository.initialize()) {
+			this.clusterRepository = clusterRepository;
+			this.repositoris.add(clusterRepository);	
+		}		
 	}
 	
-	
 	@Override
-	public void create(Wession s) throws RespositoryException {
-		log.debug("creat:{}",s.getKey());
+	public void create(Wession session) throws RespositoryException {
+		long start_time = System.currentTimeMillis();
+		LOG.process().info("{} / ----",session.getKey());
 		for (WessionRepository<Wession> repository : repositoris) {
-			log.debug("repository :  {} " ,repository);
-			repository.create(s);
+			repository.create(session);
 		}
-		log.info("creat:{}",s);
+		long end_time = System.currentTimeMillis();
+		LOG.process().debug("{} / {}",session.getKey(), (end_time - start_time));
 	}
 
 	@Override
 	public Wession read(String key) throws RespositoryException {
-		log.debug("read:{}",key);
+		LOG.process().info("{}",key);
 		return coreRepository.read(key);
 	}
 
 	@Override
-	public void update(Wession s) throws RespositoryException {
-		log.debug("update:{}",s.getKey());
+	public void update(Wession session) throws RespositoryException {
+		long start_time = System.currentTimeMillis();
+		LOG.process().info("{} / ----",session.getKey());
 		for (WessionRepository<Wession> repository : repositoris) {
-			repository.update(s);
+			repository.update(session);
 		}
-		log.info("update:{}",s);
+		long end_time = System.currentTimeMillis();
+		LOG.process().debug("{} / {}",session.getKey(), (end_time - start_time));
 	}
 
 	@Override
-	public void delete(Wession s) throws RespositoryException {
-		log.debug("delete:{}",s.getKey());
+	public void delete(Wession session) throws RespositoryException {
+		long start_time = System.currentTimeMillis();
+		LOG.process().info("{} / ----",session.getKey());
 		for (WessionRepository<Wession> repository : repositoris) {
-			repository.delete(s);
+			repository.delete(session);
 		}
-		log.info("delete:{}",s);
+		long end_time = System.currentTimeMillis();
+		LOG.process().debug("{} / {}",session.getKey(), (end_time - start_time));
 	}
 
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
+		long start_time = System.currentTimeMillis();
+		LOG.process().info("{} / ----",request.getFilter());
+		
 		SearchResponseMessage response = null;
 		if(isIndexSearch(request.getFilter())) {
 			response = indexRepository.search(request);
@@ -93,6 +106,8 @@ public class WessionCluster implements WessionRepository<Wession> {
 			response = coreRepository.search(request);
 		}
 		
+		long end_time = System.currentTimeMillis();
+		LOG.process().debug("{} / {} / {}",request.getFilter(), response.getTotalResults() , (end_time - start_time));		
 		return response;
 	}
 	

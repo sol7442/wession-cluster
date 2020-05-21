@@ -1,14 +1,18 @@
 package com.wowsanta.raon.impl.proc;
 
 
+import com.wowsanta.logger.LOG;
+import com.wowsanta.raon.impl.data.INDEX;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.raon.impl.message.UnregisterRequestMessage;
 import com.wowsanta.raon.impl.message.UnregisterResonseMessage;
+import com.wowsanta.raon.impl.session.RaonSession;
+import com.wowsanta.raon.impl.session.SessionKeyGenerator;
 import com.wowsanta.server.ServerException;
+import com.wowsanta.wession.WessionCluster;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class UnregisterProcess extends AbstractSessionProcess {
 	public UnregisterProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
@@ -19,12 +23,21 @@ public class UnregisterProcess extends AbstractSessionProcess {
 	public void porcess() throws ServerException {
 		try {
 			UnregisterRequestMessage request_message = (UnregisterRequestMessage) getRequest().getMessage();
-			log.debug("request : {} ", request_message);
+			LOG.process().info("request  : {} ", request_message);
+			
+			String user_id      = request_message.getUserId().getValue();
+			INDEX index         = request_message.getSessionIndex();
+			
+			String session_key = SessionKeyGenerator.generate(user_id.getBytes(),index.toBytes());
+			RaonSession session = (RaonSession) WessionCluster.getInstance().read(session_key);
+			if(session != null) {
+				WessionCluster.getInstance().delete(session);
+			}
 			
 			UnregisterResonseMessage response_message = (UnregisterResonseMessage) getResponse().getMessage();
-			log.debug("response : {} ", response_message);
+			LOG.process().debug("response : {} ", response_message);
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			LOG.process().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

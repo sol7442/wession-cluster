@@ -3,7 +3,7 @@ package com.wowsanta.raon.impl.message;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.wowsanta.raon.impl.data.BYTE4;
+import com.wowsanta.raon.impl.data.INDEX;
 import com.wowsanta.raon.impl.data.CMD;
 import com.wowsanta.raon.impl.data.RSTRS;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
@@ -21,7 +21,7 @@ public class TokenOtpGetRequestMessage extends RaonSessionMessage {
 	CMD command = new CMD(RaonCommand.CMD_PS_GETTOKENOTP.getValue());
 	STR userId;
 	STR random;
-	BYTE4 sessionIndex;
+	INDEX sessionIndex;
 	RSTRS data;
 	
 	@Override

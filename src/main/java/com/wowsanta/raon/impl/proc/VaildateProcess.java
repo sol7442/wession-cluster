@@ -1,17 +1,23 @@
 package com.wowsanta.raon.impl.proc;
 
-import java.util.Date;
+import java.util.Random;
 
+import com.wowsanta.logger.LOG;
+import com.wowsanta.raon.impl.data.INDEX;
 import com.wowsanta.raon.impl.data.INT;
+import com.wowsanta.raon.impl.data.RSTR;
 import com.wowsanta.raon.impl.data.RSTRS;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
+import com.wowsanta.raon.impl.data.STR;
+import com.wowsanta.raon.impl.message.ErrorResonseMessage;
 import com.wowsanta.raon.impl.message.VaildateRequestMessage;
 import com.wowsanta.raon.impl.message.VaildateResponseMessage;
+import com.wowsanta.raon.impl.session.RaonSession;
+import com.wowsanta.raon.impl.session.SessionKeyGenerator;
 import com.wowsanta.server.ServerException;
+import com.wowsanta.util.Hex;
+import com.wowsanta.wession.WessionCluster;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class VaildateProcess extends AbstractSessionProcess {
 	public VaildateProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
@@ -23,22 +29,61 @@ public class VaildateProcess extends AbstractSessionProcess {
 		try {
 
 			VaildateRequestMessage  request_message  = (VaildateRequestMessage) getRequest().getMessage();
-			log.debug("request : {} ", request_message);
+			LOG.process().info("request  : {} ", request_message);
 			
 			
-			VaildateResponseMessage response_message = (VaildateResponseMessage) getResponse().getMessage();
+			String user_id      = request_message.getUserId().getValue();
+			INDEX index         = request_message.getSessionIndex();
+			String ramdom_value = request_message.getRandom().getValue();
+			String token_val  = request_message.getData().get(0).getValue();
+			String token_opt = null;
+			if(request_message.getData().get(1) != null) {
+				token_opt = request_message.getData().get(1).getValue();
+			}
+		
 			
-			response_message.setLat(new INT((int)new Date().getTime())) ;
-			response_message.setLot(new INT((int)System.currentTimeMillis()));
+			String session_key = SessionKeyGenerator.generate(user_id.getBytes(),index.toBytes());
+			RaonSession session = (RaonSession) WessionCluster.getInstance().read(session_key);
 			
-			RSTRS data = new RSTRS();
-			data.add((byte)0x0,request_message.getData().get(0x00));
+			if(session != null) {
+				if(ramdom_value.equals(session.getRandom()) && token_val.equals(session.getToken())){
+					String otp_val = (String) session.getAttribute("opt.val");
+					LOG.process().debug("token_opt : {}-{}", token_opt, otp_val);
 					
-			response_message.setData(data);
+					RSTRS data = new RSTRS();
+					byte[] token_otp_key = new byte[8];
+					new Random().nextBytes(token_otp_key);
+					String token_opt_value = Hex.toHexString(token_otp_key);
+					data.add((byte)0x0, new RSTR((byte)0x0, token_opt_value));
+					
+					VaildateResponseMessage response_message = (VaildateResponseMessage) getResponse().getMessage();
+					response_message.setLot(new INT((int) session.getCreateTime().getTime()));
+					response_message.setLat(new INT((int) session.getModifyTime().getTime())) ;
+					response_message.setData(data);
+					
+				}else {
+					
+					ErrorResonseMessage error_message = new ErrorResonseMessage();
+					error_message.setRequest(request_message.getCommand());
+					error_message.setCode(new INT(5000));
+					error_message.setMessage(new STR("Token Missmatched : ["+session.getRandom()+"]/["+session.getToken()+"] "));
+					
+					setResponse(new SessionResponse(error_message));
+				}
+				
+			}else {
+				
+				ErrorResonseMessage error_message = new ErrorResonseMessage();
+				error_message.setRequest(request_message.getCommand());
+				error_message.setCode(new INT(5000));
+				error_message.setMessage(new STR("Session Not Found"));
+				
+				setResponse(new SessionResponse(error_message));
+			}
 			
-			log.debug("response : {} ", response_message);
+			LOG.process().info("response : {} ", getResponse().getMessage());
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			LOG.process().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

@@ -18,7 +18,6 @@ public class ServerTest {
 		server.setCore(2);
 		server.setPort(5050);
 
-		server.setProcessHandlerClass(RaonSessionServiceDispatcher.class.getName());
 		server.save("./config/server.json");
 		
 		server.awaitTerminate();

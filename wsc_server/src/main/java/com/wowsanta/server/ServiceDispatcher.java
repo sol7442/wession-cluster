@@ -2,13 +2,12 @@ package com.wowsanta.server;
 
 import java.util.concurrent.BlockingQueue;
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.util.config.JsonConfiguration;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Data
 @EqualsAndHashCode(callSuper=false)
 public abstract class ServiceDispatcher extends JsonConfiguration implements Runnable {
@@ -26,7 +25,6 @@ public abstract class ServiceDispatcher extends JsonConfiguration implements Run
 	}
 	
 	public void run() {
-		log.debug("[{}]-{}", Thread.currentThread().getName(),this.getClass().getName());
 		while(runable) {
 			try {
 				ServiceProcess<?,?> pocess = requestQueue.take();
@@ -36,7 +34,7 @@ public abstract class ServiceDispatcher extends JsonConfiguration implements Run
 				after(pocess);
 				
 			} catch (InterruptedException e) {
-				log.error(e.getMessage(),e);
+				LOG.application().error(e.getMessage(),e);
 			}
 		}
 	}

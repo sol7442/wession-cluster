@@ -3,7 +3,7 @@ package com.wowsanta.raon.impl.message;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.wowsanta.raon.impl.data.BYTE4;
+import com.wowsanta.raon.impl.data.INDEX;
 import com.wowsanta.raon.impl.data.CMD;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.raon.impl.data.STR;
@@ -19,7 +19,7 @@ public class UserDataGetRequestMessage extends RaonSessionMessage {
 	
 	CMD command = new CMD(RaonCommand.CMD_PS_GETUSERDATA.getValue());
 	STR userId;
-	BYTE4 sessionIndex;
+	INDEX sessionIndex;
 	
 	
 	@Override

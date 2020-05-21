@@ -15,8 +15,8 @@ public class RSTR extends DATA {
 		this.length  = buffer.getInt();
 		this.index   = buffer.get();
 		
-		byte[] data = new byte[this.length];
-		buffer.get(data);
+		byte[] byte_data = new byte[this.length];
+		buffer.get(byte_data);
 		
 		this.padding = getPadding(length + 1);
 		for(int i=0; i<padding; i++) {
@@ -24,10 +24,12 @@ public class RSTR extends DATA {
 		}
 		
 		this.size    = INT.LENGTH + 1 + this.length + this.padding;
-		this.value   = new String(data);
+		this.value   = new String(byte_data);
 	}
 	public RSTR(byte idx, String str) {
-		this.length  = str.length();
+		byte[] byte_data = str.getBytes();
+		
+		this.length  = byte_data.length;
 		this.padding = getPadding(length + 1);
 		this.size    = INT.LENGTH + 1 + this.length + this.padding;
 		this.value   = str;

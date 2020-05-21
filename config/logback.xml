@@ -15,7 +15,7 @@
         </rollingPolicy>
         <encoder>
         	<charset>UTF-8</charset>
-            <pattern>%d{HH:mm:ss.SSS} | %-5level | %-32.32logger{30} | %msg%n</pattern>
+            <pattern>%-16(%d{HH:mm:ss.SSS} %level) %-32C{30}.%-32M\(%L\) | %msg%n</pattern>
         </encoder>
     </appender> 
     
@@ -27,13 +27,24 @@
         </rollingPolicy>
         <encoder>
         	<charset>UTF-8</charset>
-            <pattern>%d{HH:mm:ss.SSS} | %-5level | %-32.32logger{30} | %msg%n</pattern>
+            <pattern>%-16(%d{HH:mm:ss.SSS} %level) %-32C{30}.%-32M\(%L\) | %msg%n</pattern>
         </encoder>
     </appender>   
     
 
-
-     <appender name="ERROR_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<appender name="PROCESS_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logback.path}/${app.name}.${inst.name}.process.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logback.path}/${app.name}.${inst.name}.process.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+        	<charset>UTF-8</charset>
+            <pattern>%d{HH:mm:ss.SSS} | %-5level | %-32.32C{30} | %-32M\(%L\) | %msg%n</pattern>
+        </encoder>
+    </appender>    
+    
+      <appender name="ERROR_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
     	<filter class="ch.qos.logback.classic.filter.LevelFilter"> 
 			<level>ERROR</level> 
 			<onMatch>ACCEPT</onMatch>
@@ -48,20 +59,6 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{35} - %msg%n</pattern>
         </encoder>
     </appender>  
-
-	    
-	<appender name="PROCESS_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logback.path}/${app.name}.${inst.name}.process.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logback.path}/${app.name}.${inst.name}.process.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-        <encoder>
-        	<charset>UTF-8</charset>
-            <pattern>%d{HH:mm:ss.SSS} | %-5level | %-32.32logger{30} | %msg%n</pattern>
-        </encoder>
-    </appender>    
-    
     
     <appender name="ACCESS_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logback.path}/${app.name}.${inst.name}.access.log</file>
@@ -79,11 +76,14 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="com.wowsanta" level="${logback.mode}">
+    <logger name="application" level="${logback.mode}">
+        <appender-ref ref="APP_LOG" />
+    </logger>
+    <logger name="system" level="${logback.mode}">
         <appender-ref ref="SYSTEM_LOG" />
     </logger>
     
-    <logger name="com.wowsanta.raon" level="${logback.mode}" >
+    <logger name="process" level="${logback.mode}" >
         <appender-ref ref="PROCESS_LOG" />
     </logger>
     

@@ -1,5 +1,6 @@
 package com.wowsanta.wession.cluster;
 
+import java.io.Serializable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -10,10 +11,11 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import com.wowsanta.client.nio.NioClient;
-import com.wowsanta.server.Response;
+import com.wowsanta.logger.LOG;
 import com.wowsanta.wession.message.CreateMessage;
 import com.wowsanta.wession.message.DeleteMessage;
-import com.wowsanta.wession.message.RegisterMessage;
+import com.wowsanta.wession.message.RegisterRequestMessage;
+import com.wowsanta.wession.message.RegisterResponseMessage;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.message.UpdateMessage;
@@ -23,18 +25,18 @@ import com.wowsanta.wession.session.WessionRepository;
 
 import lombok.Data;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Data
 @ToString(exclude= {"objectPool"})
-public class ClusterNode implements WessionRepository<Wession>{
+public class ClusterNode implements WessionRepository<Wession>, Serializable{
+	transient private static final long serialVersionUID = -4821092090124481068L;
+	
 	String name;
 	String address;
 	int port;
     
-    int maxIdle;
-    int minIdle;
+    int maxIdle = 10;
+    int minIdle = 2;
     boolean testWhileIdle = true;
     boolean testOnCreate  = true;
     boolean active 		  = false;
@@ -47,14 +49,16 @@ public class ClusterNode implements WessionRepository<Wession>{
 	    objectPool.setTestWhileIdle(testWhileIdle);
 	    objectPool.setTestOnCreate(testOnCreate);
 
-	    log.info("Cluster Node Initialized : {} ", this);
+	    LOG.system().info("Cluster Node Initialized : {} ", this);
 	}
 	@Override
-	public void create(Wession s) throws RespositoryException {
+	public void create(Wession session) throws RespositoryException {
+		LOG.process().debug("create.cluster.{} : {} ",this.name,session.getKey());
+		
 		NioClient client = null;
 		try {
 			client = objectPool.borrowObject();	
-			client.write(new CreateMessage(s));
+			client.write(new CreateMessage(session));
 		} catch (Exception e) {
 			throw new RespositoryException(e.getMessage(),e);
 		}finally {
@@ -63,7 +67,6 @@ public class ClusterNode implements WessionRepository<Wession>{
 	}
 	@Override
 	public Wession read(String key) throws RespositoryException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	@Override
@@ -72,6 +75,8 @@ public class ClusterNode implements WessionRepository<Wession>{
 		try {
 			client = objectPool.borrowObject();	
 			client.write(new UpdateMessage(s));
+			
+			LOG.process().debug("update.cluster.{} : {} ",this.name,s.getKey());
 		} catch (Exception e) {
 			throw new RespositoryException(e.getMessage(),e);
 		}finally {
@@ -85,31 +90,35 @@ public class ClusterNode implements WessionRepository<Wession>{
 		try {
 			client = objectPool.borrowObject();	
 			client.write(new DeleteMessage(s));
+			
+			LOG.process().debug("delete.cluster.{} : {} ",this.name,s.getKey());
 		} catch (Exception e) {
 			throw new RespositoryException(e.getMessage(),e);
 		}finally {
 			objectPool.returnObject(client);
 		}
 	}
-	public RegisterMessage register() throws RespositoryException {
+	public RegisterResponseMessage register(ClusterNode reg_node) throws RespositoryException {
 		try {
-			final ClusterNode this_node = this;
 			
-			Future<RegisterMessage> future = Executors.newSingleThreadExecutor().submit(new Callable<RegisterMessage>() {
+			final ClusterNode this_node = this;
+			Future<RegisterResponseMessage> future = Executors.newSingleThreadExecutor().submit(new Callable<RegisterResponseMessage>() {
 				@Override
-				public RegisterMessage call() throws Exception {
+				public RegisterResponseMessage call() throws Exception {
 					NioClient client = null;
 					try {
+						LOG.system().info("cluseter.node.regiester : {} / {}", this_node, reg_node.getName());
 						client = objectPool.borrowObject();
+						if(client != null) {
+							RegisterRequestMessage request_message = new RegisterRequestMessage();
+							request_message.setNode(reg_node);
+							return (RegisterResponseMessage) client.send(request_message);	
+						}else {
+							return new RegisterResponseMessage();
+						}
 						
-						RegisterMessage request_message = new RegisterMessage();
-						request_message.setAddress(this_node.getAddress());
-						request_message.setPort(this_node.getPort());
-						request_message.setName(this_node.getName());
-						
-						return (RegisterMessage) client.send(request_message);
 					} catch (Exception e) {
-						log.error("{}",e.getMessage(),e);
+						LOG.system().info("Register failed : {} / {}", this_node.getName(), reg_node);
 						throw new RespositoryException(e.getMessage(),e);
 					}finally {
 						objectPool.returnObject(client);
@@ -122,23 +131,21 @@ public class ClusterNode implements WessionRepository<Wession>{
 			} catch (InterruptedException | ExecutionException e) {
 				throw new RespositoryException(e.getMessage(), e);
 			} catch (TimeoutException e) {
-				log.info("Register failed : {} / {}", this_node, e.getMessage());
+				LOG.system().info("Register failed : {} / {}", this_node.getName(), reg_node);
 				return null;
 			}
 		} catch (Exception e) {
-			log.error(e.getMessage());
+			LOG.system().error(e.getMessage());
 			throw new RespositoryException(e.getMessage(), e);
 		}
 	}
 	
 	@Override
 	public int size() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage r) throws RespositoryException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	public void close() {

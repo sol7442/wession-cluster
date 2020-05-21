@@ -1,39 +1,43 @@
 package com.wowsanta.wession.cluster;
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.server.ServerException;
+import com.wowsanta.wession.WessionCluster;
 import com.wowsanta.wession.manager.ClusterManager;
-import com.wowsanta.wession.message.RegisterMessage;
+import com.wowsanta.wession.message.RegisterRequestMessage;
+import com.wowsanta.wession.message.RegisterResponseMessage;
 import com.wowsanta.wession.message.WessionMessage;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class RegisterProcess extends AbstractClusterProcess {
 
 	public RegisterProcess(WessionMessage message) {
 		setRequest (new ClusterRequest(message));
-		setResponse(new ClusterResponse(new RegisterMessage()));
+		setResponse(new ClusterResponse(new RegisterResponseMessage()));
 	}
 
 	@Override
 	public void porcess() throws ServerException{
-		
+		RegisterRequestMessage  request_messge   = null;
+		RegisterResponseMessage response_message = null;
 		try {
-			RegisterMessage request_messge   = (RegisterMessage) request.getMessage();
-			RegisterMessage response_message = (RegisterMessage) response.getMessage();
+			request_messge   = (RegisterRequestMessage) request.getMessage();
+			response_message = (RegisterResponseMessage) response.getMessage();
+			LOG.process().info("request : {} ",request_messge);
 			
-			ClusterNode cluster_node = new ClusterNode();
-			cluster_node.setName(request_messge.getName());
-			cluster_node.setAddress(request_messge.getAddress());
-			cluster_node.setPort(request_messge.getPort());
+			int current_size = WessionCluster.getInstance().size();
+			ClusterNode cluster_node = request_messge.getNode();
 			
-			ClusterManager.getInstance().addNode(cluster_node);
+			ClusterManager.getInstance().setClusterNode(cluster_node);
+
+			LOG.process().debug("node : {} / {}",cluster_node, current_size);
 			
-			response_message.setSize(100);
-			
+			response_message.setSize(current_size);			
+			LOG.process().info("response : {} ",response_message);
 		}catch (Exception e) {
-			log.error(e.getMessage(), e);
+			LOG.process().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
+		}finally {
+			
 		}
 	}
 }

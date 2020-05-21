@@ -44,6 +44,8 @@ public class RSTRS extends DATA {
 		add(idx, new RSTR((byte) idx,value));
 	}
 	public RSTR get(int index) {
+		 if (index >= this.values.size()) {return null;}
+			 
 		return this.values.get(index);
 	}
 

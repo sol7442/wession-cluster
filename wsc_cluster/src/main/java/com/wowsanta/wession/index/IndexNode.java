@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
@@ -14,10 +15,8 @@ import com.wowsanta.wession.session.Wession;
 import com.wowsanta.wession.session.WessionRepository;
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 @Data
-@Slf4j
 public class IndexNode implements WessionRepository<Wession>{
 	String keyName;
 	Method keyMethod;
@@ -28,69 +27,53 @@ public class IndexNode implements WessionRepository<Wession>{
 	
 	
 	@Override
-	public void create(Wession s) throws RespositoryException {
-		if(s == null) {
+	public void create(Wession session) throws RespositoryException {
+		if(session == null) {
 			throw new RespositoryException("NULL VALUE");
 		}
 		
-		String index_key = getIndexKeyValue(s);
+		String index_key = getIndexKeyValue(session);
 		synchronized(getLock(index_key)){
 			List<Wession> list=cache.get(index_key);
 			if(list == null){
 				list = new ArrayList<Wession>();
 			}
-			list.add(s);
+			list.add(session);
 			cache.put(index_key, list);
-			log.debug("index.create.{}.{}.{} ", keyName,index_key,s.getKey());
-
+			LOG.process().debug("create.index.{}={} : {} ",keyName,index_key, session.getKey());
 		}
 	}
 	public List<Wession> list(String index_key) throws RespositoryException {
-		
 		List<Wession> list = cache.get(index_key);
 		if(list == null) {
 			list = new ArrayList<>();
 		}
-		
-		log.debug("index.list.{}.{}/{} ", keyName,index_key,list.size());
-		return cache.get(index_key);
+		return list;
 	}
 	@Override
 	public Wession read(String key) throws RespositoryException {
 		return null;
 	}
 	@Override
-	public void update(Wession s) throws RespositoryException {
-		String index_key = getIndexKeyValue(s);
-		synchronized(getLock(index_key)){
-			List<Wession> list=cache.get(index_key);
-			for (Wession wession : list) {
-				if(wession.getKey().equals(s.getKey())){
-					list.remove(wession);
-					list.add(s);
-					break;
-				}
-			}
-		}
-		log.debug("index.update.{} : {} ", keyName, index_key);		
+	public void update(Wession session) throws RespositoryException {
+
 	}
 	@Override
-	public void delete(Wession s) throws RespositoryException {
-		String index_key = getIndexKeyValue(s);
+	public void delete(Wession session) throws RespositoryException {
+		String index_key = getIndexKeyValue(session);
 		synchronized(getLock(index_key)){
 			List<Wession> list=cache.get(index_key);
 			for (Wession wession : list) {
-				if(wession.getKey().equals(s.getKey())){
+				if(wession.getKey().equals(session.getKey())){
 					list.remove(wession);
 					if(list.size() == 0) {
 						cache.remove(index_key);
-						log.debug("index.remove.cache.{} : {} ", keyName, index_key);		
 					}
 					break;
 				}
 			}
 		}
-		log.debug("index.remove.{} : {} ", keyName, index_key);		
+		LOG.process().debug("delete.index.{}={} : {} ",keyName,index_key, session.getKey());
 	}
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage r)throws RespositoryException{

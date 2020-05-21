@@ -1,14 +1,13 @@
 package com.wowsanta.raon.impl.proc;
 
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.raon.impl.data.INT;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
+import com.wowsanta.raon.impl.message.HellowRequestMessage;
 import com.wowsanta.raon.impl.message.HellowResonseMessage;
 import com.wowsanta.server.ServerException;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class HelloProcess extends AbstractSessionProcess {
 	public HelloProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
@@ -18,15 +17,17 @@ public class HelloProcess extends AbstractSessionProcess {
 	@Override
 	public void porcess() throws ServerException {
 		try {
-			log.debug("request  : {} ", getRequest().getMessage());
 			
-			
+			HellowRequestMessage request_message = (HellowRequestMessage) getRequest().getMessage();
 			HellowResonseMessage response_message = (HellowResonseMessage) getResponse().getMessage();
+
+			LOG.process().info("request  : {} ", request_message);
+			
 			response_message.setCode(new INT(0));
 
-			log.debug("response : {} ", response_message);
+			LOG.process().info("reponse : {} ", response_message);
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			LOG.process().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

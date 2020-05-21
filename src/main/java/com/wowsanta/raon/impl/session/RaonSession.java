@@ -12,6 +12,7 @@ public class RaonSession implements Wession {
 	private static final long serialVersionUID = -6949212685743717047L;
 	String key;
 	String userId;
+	String random;
 	String token;
 	Date   createTime;
 	Date   modifyTime;
@@ -22,5 +23,8 @@ public class RaonSession implements Wession {
 	}
 	public Object getAttribute(String key) {
 		return this.attributes.get(key);
+	}
+	public void removeAttribute(String key) {
+		this.attributes.remove(key);
 	}
 }

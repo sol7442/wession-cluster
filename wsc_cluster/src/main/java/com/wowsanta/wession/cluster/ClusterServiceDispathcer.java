@@ -37,12 +37,16 @@ public class ClusterServiceDispathcer extends ServiceDispatcher{
 	@Override
 	public void after(ServiceProcess<?,?> process) {
 		try {
-			Message message = process.getResponse().getMessage();
-			NioConnection connection = (NioConnection) process.getConnection();
 			
-			connection.write(message.toBytes());
-			connection.write0();
-
+			ClusterResponse response = (ClusterResponse) process.getResponse();
+			if(response != null) {
+				Message message = response.getMessage();
+				
+				NioConnection connection = (NioConnection) process.getConnection();
+				
+				connection.write(message.toBytes());
+				connection.write0();
+			}
 			end_time = System.currentTimeMillis();
 		}catch (Exception e) {
 			log.error(e.getMessage(), e);

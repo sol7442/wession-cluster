@@ -55,7 +55,6 @@ public class ClusterNodeTest {
 	private RaonSession create_random_raon_session() {
 		RaonSession session = new RaonSession();
 		session.setKey(Hex.toHexString(new Random().nextInt()));
-		session.setName("RaionSession");
 		session.setUserId("tester1");
 		session.setCreateTime(new Date());
 		session.setModifyTime(new Date());

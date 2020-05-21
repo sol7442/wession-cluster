@@ -25,17 +25,18 @@
       "connectionFactoryClass": "com.wowsanta.wession.cluster.ClusterConnectionFactory",
       "serviceDispatcherClass": "com.wowsanta.wession.cluster.ClusterServiceDispathcer"
     },
-    "nodes": [
-      {
+    "nodeMap": {
+      "dev_02": {
         "name": "dev_02",
         "address": "127.0.0.1",
         "port": 6060,
         "maxIdle": 5,
         "minIdle": 2,
         "testWhileIdle": false,
-        "testOnCreate": true
+        "testOnCreate": true,
+        "active": false
       }
-    ],
+    },
     "threadCount": 0
   },
   "indexService": {

@@ -34,12 +34,13 @@ public class ErrorResonseMessage extends RaonSessionMessage {
 	
 	@Override
 	public void flush() throws IOException{
-		int total_size = command.getSize() + request.getSize() + code.getSize();
+		int total_size = command.getSize() + request.getSize() + code.getSize() + message.getSize();
 		ByteBuffer buffer = ByteBuffer.allocate(total_size);
 		
 		buffer.put(command.toBytes());
 		buffer.put(request.toBytes());
 		buffer.put(code.toBytes());
+		buffer.put(message.toBytes());
 		
 		this.bytes = buffer.array();
 	}

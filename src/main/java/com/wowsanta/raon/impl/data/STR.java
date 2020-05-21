@@ -31,7 +31,9 @@ public class STR extends DATA{
 		}
 	}
 	public STR(String str) {
-		this.length  = str.length();
+		byte[] byte_data = str.getBytes();
+		
+		this.length  = byte_data.length;
 		this.padding = getPadding(length);
 		this.size    = INT.LENGTH + this.length + this.padding;
 		

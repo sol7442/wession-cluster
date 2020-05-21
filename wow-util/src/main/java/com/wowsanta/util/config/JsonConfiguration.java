@@ -21,8 +21,11 @@ public class JsonConfiguration {
 		builder.registerTypeAdapter(clazz, new ConfigurationTypAdapter());
 	}
 	public String toString(boolean pretty) {
-		Gson gson = builder.create();
-		return gson.toJson(this);
+		GsonBuilder builder = new GsonBuilder();
+		if(pretty) {
+			builder.setPrettyPrinting();
+		}
+		return builder.create().toJson(this);
 	}
 	public void save(String file_name) {
 		try (FileWriter writer = new FileWriter(file_name)) {

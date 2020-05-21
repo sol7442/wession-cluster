@@ -6,10 +6,16 @@ import java.nio.channels.SocketChannel;
 
 import com.wowsanta.client.Client;
 
-public abstract class NioClient extends Client {
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-	String ipAddress;
-	int port;
+
+@Data
+@EqualsAndHashCode(callSuper=true)
+public abstract class NioClient extends Client {
+	protected String ipAddress;
+	protected int port;
+	
 	protected SocketChannel socketChannel;
 	
 	public NioClient(String ip, int port) {
@@ -21,7 +27,6 @@ public abstract class NioClient extends Client {
 	public boolean connect() throws IOException{
 		InetSocketAddress address = new InetSocketAddress(this.ipAddress, this.port);
         socketChannel = SocketChannel.open(address);
-
         return true;
 	}
 

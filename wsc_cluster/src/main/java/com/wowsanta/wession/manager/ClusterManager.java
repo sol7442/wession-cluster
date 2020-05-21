@@ -1,36 +1,27 @@
 package com.wowsanta.wession.manager;
 
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import java.util.Set;
+import java.util.Map.Entry;
+
+import com.wowsanta.logger.LOG;
 import com.wowsanta.server.nio.NioServer;
 import com.wowsanta.wession.cluster.ClusterNode;
 import com.wowsanta.wession.cluster.ClusterRepository;
-import com.wowsanta.wession.message.RegisterMessage;
+import com.wowsanta.wession.message.RegisterResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Data
 @EqualsAndHashCode(callSuper=false)
 public class ClusterManager extends ClusterRepository{
 	private static ClusterManager instance = null;
 
-	private transient final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-	private transient final Lock readLock = readWriteLock.readLock();
-	private transient final Lock writeLock = readWriteLock.writeLock();
-
-	private transient boolean initialized = false;
-	
 	private NioServer clusterServer;
-
+	private String nodeName;
 	
 	public static ClusterManager getInstance() {
 		if(instance == null) {
@@ -38,56 +29,55 @@ public class ClusterManager extends ClusterRepository{
 		}
 		return instance;
 	}
-	
-	public boolean initialize() {
-		if(initialized == false) {
-			clusterServer.initialize();
-			this.clusterServer.start();
-			
-			for (ClusterNode cluster_node : nodes) {
-				cluster_node.initialize();
-				try {
-					RegisterMessage message = cluster_node.register();
-					if(message != null) {
-						cluster_node.setActive(true); 
-					}else {
-						cluster_node.setActive(false);
-					}
-				
-					log.info("register result : {}",message);
-				} catch (RespositoryException e) {
-					log.error(e.getMessage(), e);
-					removeNode(cluster_node.getName());
-				}
-			}
-			
-			initialized = super.initialize(threadCount);
+	public static void setInstance(ClusterManager clusterManger) {
+		if(instance == null) {
+			instance = clusterManger;
 		}
-		return initialized;
+	}
+	
+	public void start() {
+		this.clusterServer.initialize();
+		this.clusterServer.start();
+		
+		ClusterNode this_node = new ClusterNode();
+		this_node.setName(this.nodeName);
+		this_node.setAddress(this.clusterServer.getIpAddr());
+		this_node.setPort(this.clusterServer.getPort());
+		
+		Set<Entry<String, ClusterNode>> node_set =  nodeMap.entrySet();
+		for (Entry<String, ClusterNode> node_entry : node_set) {
+			ClusterNode cluster_node = node_entry.getValue();
+			cluster_node.initialize();
+			try {
+				RegisterResponseMessage message = cluster_node.register(this_node);
+				if(message != null) {
+					cluster_node.setActive(true); 
+				}else {
+					cluster_node.setActive(false);
+				}
+				LOG.system().info("Register result : {}/{}",cluster_node.getName(),message);
+			} catch (RespositoryException e) {
+				LOG.system().error(e.getMessage(), e);
+			}
+		}		
+	}
+	public void stop() {
+		this.clusterServer.stop();
+	}
+	
+	public void setClusterNode(ClusterNode node) {
+		LOG.system().debug("{}",nodeMap);
+		
+		ClusterNode cluster_node = nodeMap.get(node.getName());
+		LOG.system().debug("{}/{}",node.getName(),cluster_node);
+		if(cluster_node == null) {
+			cluster_node = node;
+			nodeMap.put(cluster_node.getName(),cluster_node);
+		}
+		cluster_node.initialize();
+		cluster_node.setActive(true);
+		LOG.system().info("{}/{}",node.getName(),cluster_node);
 	}
 
-	
-	public void removeNode(String name) {
-		writeLock.lock();
-		try {
-			for (ClusterNode node : nodes) {
-				if(node.getName().equals(name)) {
-					nodes.remove(node);
-					log.debug("removed cluster node : {} ", nodes);
-				}
-			}
-		}finally {
-			writeLock.unlock();
-		}
-	}
-	public void addNode(ClusterNode node) {
-		writeLock.lock();
-		try {
-			this.nodes.add(node);
-			log.debug("add cluster node : {} ", nodes);
-		}finally {
-			writeLock.unlock();
-		}
-	}
 	
 }
