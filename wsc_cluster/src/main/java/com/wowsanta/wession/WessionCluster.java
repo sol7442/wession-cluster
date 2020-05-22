@@ -7,8 +7,6 @@ import com.wowsanta.logger.LOG;
 import com.wowsanta.wession.cluster.ClusterRepository;
 import com.wowsanta.wession.core.CoreRepository;
 import com.wowsanta.wession.index.IndexRepository;
-import com.wowsanta.wession.message.MessageType;
-import com.wowsanta.wession.message.ResultType;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;

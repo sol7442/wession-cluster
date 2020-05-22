@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper=false)
 public abstract class Server extends JsonConfiguration{
-	public abstract boolean initialize();
-	public abstract void start();
+	public abstract boolean initialize() throws ServerException;
+	public abstract void start() throws ServerException;
 	public abstract void stop();
 }

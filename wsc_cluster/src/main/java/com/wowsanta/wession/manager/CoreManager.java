@@ -22,4 +22,6 @@ public class CoreManager extends CoreRepository {
 		LOG.system().info("CoreManager : {} ", initialized);
 		return initialized;
 	}
+
+	
 }

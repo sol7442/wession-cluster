@@ -9,6 +9,7 @@ import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.raon.impl.data.STR;
 import com.wowsanta.raon.impl.message.ErrorResonseMessage;
 import com.wowsanta.raon.impl.proc.AbstractSessionProcess;
+import com.wowsanta.raon.impl.proc.SessionRequest;
 import com.wowsanta.raon.impl.proc.SessionResponse;
 import com.wowsanta.server.Message;
 import com.wowsanta.server.ServerException;
@@ -52,17 +53,19 @@ public class RaonSessionServiceDispatcher extends ServiceDispatcher{
 		try {
 
 			AbstractSessionProcess session_process = (AbstractSessionProcess) process;
-			RaonSessionMessage request_message = (RaonSessionMessage) session_process.getRequest().getMessage();
-			
-			ErrorResonseMessage error_message = new ErrorResonseMessage();
-			error_message.setRequest(request_message.getCommand());
-			error_message.setCode(new INT(5000));
-			error_message.setMessage(new STR("SERVER ERROR : " + error.getMessage()));
-			
-			session_process.setResponse(new SessionResponse(error_message));
+			SessionRequest request = session_process.getRequest();
+			if(request != null) {
+				RaonSessionMessage request_message = request.getMessage();
+				
+				ErrorResonseMessage error_message = new ErrorResonseMessage();
+				error_message.setRequest(request_message.getCommand());
+				error_message.setCode(new INT(5000));
+				error_message.setMessage(new STR("SERVER ERROR : " + error.getMessage()));
+				
+				session_process.setResponse(new SessionResponse(error_message,request.getSession()));
 
-			LOG.process().info("error message : {}", error_message );
-			
+				LOG.process().info("error message : {}", error_message );				
+			}
 		} catch (Exception e) {
 			LOG.application().error(e.getMessage(), e);
 		}

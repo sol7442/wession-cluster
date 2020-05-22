@@ -4,11 +4,10 @@ import com.wowsanta.logger.LOG;
 import com.wowsanta.server.ServerException;
 import com.wowsanta.wession.manager.CoreManager;
 import com.wowsanta.wession.message.UpdateMessage;
-import com.wowsanta.wession.message.WessionMessage;
 
 public class UpdateProcess extends AbstractClusterProcess {
 
-	public UpdateProcess(WessionMessage message) {
+	public UpdateProcess(ClusterMessage message) {
 		setRequest(new ClusterRequest(message));
 	}
 

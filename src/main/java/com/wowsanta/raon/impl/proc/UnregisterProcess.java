@@ -11,12 +11,11 @@ import com.wowsanta.raon.impl.session.SessionKeyGenerator;
 import com.wowsanta.server.ServerException;
 import com.wowsanta.wession.WessionCluster;
 
-import lombok.extern.slf4j.Slf4j;
 
 public class UnregisterProcess extends AbstractSessionProcess {
 	public UnregisterProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
-		setResponse(new SessionResponse(new UnregisterResonseMessage()));
+		setResponse(new SessionResponse(new UnregisterResonseMessage(), getRequest().getSession()));
 	}
 
 	@Override

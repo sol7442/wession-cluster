@@ -49,6 +49,10 @@ public class CoreRepository implements WessionRepository<Wession> {
 		core.remove(session.getKey());		
 	}
 
+	public List<Wession> list() {
+		return new ArrayList<Wession>(core.values());
+	}
+	
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
 		SearchResponseMessage response = new SearchResponseMessage();

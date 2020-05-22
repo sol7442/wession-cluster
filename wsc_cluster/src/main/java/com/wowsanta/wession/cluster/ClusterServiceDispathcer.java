@@ -1,15 +1,16 @@
 package com.wowsanta.wession.cluster;
 
+import java.io.IOException;
+
+import com.wowsanta.logger.LOG;
 import com.wowsanta.server.Message;
+import com.wowsanta.server.ServerException;
 import com.wowsanta.server.ServiceDispatcher;
 import com.wowsanta.server.ServiceProcess;
 import com.wowsanta.server.nio.NioConnection;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @EqualsAndHashCode(callSuper=false)
 public class ClusterServiceDispathcer extends ServiceDispatcher{
 
@@ -19,25 +20,34 @@ public class ClusterServiceDispathcer extends ServiceDispatcher{
 	public void before(ServiceProcess<?, ?> process) {
 		try {
 			start_time = System.currentTimeMillis();
-			log.debug("porcess run : {} ", process);
 		}catch (Exception e) {
-			log.error(e.getMessage(), e);
-		} 
+			LOG.application().error(e.getMessage(), e);
+		}finally {
+			LOG.application().debug("before : {} / {}", process.getClass().getName(), start_time);
+		}
 	}
 
 	@Override
 	public void dispatcher(ServiceProcess<?,?> process) {
 		try {
 			process.porcess();
-		}catch (Exception e) {
-			log.error(e.getMessage(), e);
+		}catch (ServerException e) {
+			LOG.application().error(e.getMessage(),e);
+		}finally {
+			try {
+				ClusterResponse response = (ClusterResponse) process.getResponse();
+				if(response != null) {
+					response.getMessage().flush();
+				}
+			} catch (IOException e) {
+				LOG.application().error(e.getMessage(), e);
+			}
 		}
 	}
 
 	@Override
 	public void after(ServiceProcess<?,?> process) {
 		try {
-			
 			ClusterResponse response = (ClusterResponse) process.getResponse();
 			if(response != null) {
 				Message message = response.getMessage();
@@ -49,9 +59,9 @@ public class ClusterServiceDispathcer extends ServiceDispatcher{
 			}
 			end_time = System.currentTimeMillis();
 		}catch (Exception e) {
-			log.error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 		}finally {
-			log.debug("duration : {} ", end_time - start_time);
+			LOG.application().debug("after : {} / {} ", process.getClass().getName(), end_time - start_time);
 		}
 	}
 }

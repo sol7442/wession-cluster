@@ -1,7 +1,5 @@
 package com.wowsanta.wession.cluster;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,11 +10,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.wowsanta.logger.LOG;
-import com.wowsanta.wession.message.RegisterRequestMessage;
-import com.wowsanta.wession.message.RegisterResponseMessage;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
-import com.wowsanta.wession.message.WessionMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
 import com.wowsanta.wession.session.WessionRepository;
@@ -27,7 +22,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public abstract class ClusterRepository implements WessionRepository<Wession> {
-	transient protected BlockingQueue<WessionMessage> requestQueue ;
+	transient protected BlockingQueue<ClusterMessage> requestQueue ;
 	
 	private transient ThreadPoolExecutor executor;
 	private transient boolean initialized = false;
@@ -35,7 +30,7 @@ public abstract class ClusterRepository implements WessionRepository<Wession> {
 	protected ConcurrentMap<String, ClusterNode> nodeMap = new ConcurrentHashMap<>();
 	protected int threadCount;
 	
-	public boolean initialize() {
+	public boolean initialize()  {
 		if(initialized == false) {
 			int core_size  = threadCount + 1;
 			int max_size   = core_size * 3;

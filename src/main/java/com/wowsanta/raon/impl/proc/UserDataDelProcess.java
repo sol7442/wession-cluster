@@ -16,7 +16,7 @@ import com.wowsanta.wession.WessionCluster;
 public class UserDataDelProcess extends AbstractSessionProcess {
 	public UserDataDelProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
-		setResponse(new SessionResponse(new UserDataDelResponseMessage()));
+		setResponse(new SessionResponse(new UserDataDelResponseMessage(), getRequest().getSession()));
 	}
 
 	@Override

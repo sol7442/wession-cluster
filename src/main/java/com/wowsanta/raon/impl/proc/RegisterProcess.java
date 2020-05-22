@@ -24,7 +24,7 @@ import com.wowsanta.wession.session.Wession;
 public class RegisterProcess extends AbstractSessionProcess {
 	public RegisterProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
-		setResponse(new SessionResponse(new RegisterResonseMessage()));
+		setResponse(new SessionResponse(new RegisterResonseMessage(), getRequest().getSession()));
 	}
 
 	@Override

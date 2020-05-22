@@ -21,7 +21,7 @@ import com.wowsanta.wession.WessionCluster;
 public class VaildateProcess extends AbstractSessionProcess {
 	public VaildateProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
-		setResponse(new SessionResponse(new VaildateResponseMessage()));
+		setResponse(new SessionResponse(new VaildateResponseMessage(),getRequest().getSession()));
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class VaildateProcess extends AbstractSessionProcess {
 					error_message.setCode(new INT(5000));
 					error_message.setMessage(new STR("Token Missmatched : ["+session.getRandom()+"]/["+session.getToken()+"] "));
 					
-					setResponse(new SessionResponse(error_message));
+					setResponse(new SessionResponse(error_message,getRequest().getSession()));
 				}
 				
 			}else {
@@ -78,7 +78,7 @@ public class VaildateProcess extends AbstractSessionProcess {
 				error_message.setCode(new INT(5000));
 				error_message.setMessage(new STR("Session Not Found"));
 				
-				setResponse(new SessionResponse(error_message));
+				setResponse(new SessionResponse(error_message,getRequest().getSession()));
 			}
 			
 			LOG.process().info("response : {} ", getResponse().getMessage());

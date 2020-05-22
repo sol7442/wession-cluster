@@ -1,8 +1,8 @@
 package com.wowsanta.wession.repository;
 
+import com.wowsanta.wession.cluster.ClusterMessage;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
-import com.wowsanta.wession.message.WessionMessage;
 import com.wowsanta.wession.message.WessionResponse;
 import com.wowsanta.wession.session.Wession;
 

@@ -18,7 +18,7 @@ import com.wowsanta.wession.WessionCluster;
 public class UserDataAddProcess extends AbstractSessionProcess {
 	public UserDataAddProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
-		setResponse(new SessionResponse(new UserDataAddResponseMessage()));
+		setResponse(new SessionResponse(new UserDataAddResponseMessage(), getRequest().getSession()));
 	}
 
 	@Override

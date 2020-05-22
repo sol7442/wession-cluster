@@ -15,12 +15,11 @@ import com.wowsanta.server.ServerException;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.WessionCluster;
 
-import lombok.extern.slf4j.Slf4j;
 
 public class TokenOtpGetProcess extends AbstractSessionProcess {
 	public TokenOtpGetProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
-		setResponse(new SessionResponse(new TokenOtpGetResponseMessage()));
+		setResponse(new SessionResponse(new TokenOtpGetResponseMessage(), getRequest().getSession()));
 	}
 
 	@Override

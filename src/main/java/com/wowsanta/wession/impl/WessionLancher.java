@@ -6,6 +6,7 @@ import java.util.Date;
 import com.wowsanta.daemon.DaemonService;
 import com.wowsanta.logger.LOG;
 import com.wowsanta.server.Server;
+import com.wowsanta.server.ServerException;
 import com.wowsanta.util.config.JsonConfiguration;
 import com.wowsanta.wession.WessionCluster;
 import com.wowsanta.wession.manager.ClusterManager;
@@ -47,22 +48,32 @@ public class WessionLancher extends JsonConfiguration implements DaemonService {
 	}
 	@Override
 	public boolean initialize(String config) {
-		coreManager = CoreManager.getInstance();
-		ClusterManager.setInstance(clusterManger);
-		IndexManager.setInstance(indexManager);
-		
-		WessionCluster.getInstance().setClusterRepository(clusterManger);
-		WessionCluster.getInstance().setCoreRepository(coreManager);
-		WessionCluster.getInstance().setIndexRepository(indexManager);
-
-		interfaceServer.initialize();
+		try {
+			coreManager = CoreManager.getInstance();
+			ClusterManager.setInstance(clusterManger);
+			IndexManager.setInstance(indexManager);
+			
+			WessionCluster.getInstance().setClusterRepository(clusterManger);
+			WessionCluster.getInstance().setCoreRepository(coreManager);
+			WessionCluster.getInstance().setIndexRepository(indexManager);
+			
+			interfaceServer.initialize();
+		} catch (ServerException e) {
+			LOG.system().error(e.getMessage(), e);
+			return false;
+		}
 		return true;
 	}
 
 	@Override
 	public void start() {
-		clusterManger.start();
-		interfaceServer.start();
+		
+		try {
+			clusterManger.start();
+			interfaceServer.start();
+		} catch (ServerException e) {
+			LOG.system().error(e.getMessage(), e);
+		}
 	}
 
 	@Override

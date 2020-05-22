@@ -22,4 +22,8 @@ public class Hex {
 	public static String toHexString(int value) {
 		return toHexString(ByteBuffer.allocate(4).putInt(value).array());
 	}
+
+	public static String toHexString(long value) {
+		return toHexString(ByteBuffer.allocate(8).putLong(value).array());
+	}
 }

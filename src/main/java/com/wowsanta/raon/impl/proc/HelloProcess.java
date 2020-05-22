@@ -11,7 +11,7 @@ import com.wowsanta.server.ServerException;
 public class HelloProcess extends AbstractSessionProcess {
 	public HelloProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
-		setResponse(new SessionResponse(new HellowResonseMessage()));
+		setResponse(new SessionResponse(new HellowResonseMessage(), getRequest().getSession()));
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package test.wowsanta.server;
 
 
+import com.wowsanta.server.ServerException;
 import com.wowsanta.server.nio.NioServer;
 
 public class DefalutServerTest {
@@ -16,10 +17,13 @@ public class DefalutServerTest {
 		server.setCore(2);
 		server.setPort(5050);
 
-		server.initialize();
-		server.start();
 		
-		//server.save(fileName);
+		try {
+			server.initialize();
+			server.start();
+		} catch (ServerException e) {
+			e.printStackTrace();
+		}
 		
 	}
 }

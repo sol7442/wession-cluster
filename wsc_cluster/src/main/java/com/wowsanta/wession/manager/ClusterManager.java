@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import com.wowsanta.logger.LOG;
+import com.wowsanta.server.ServerException;
 import com.wowsanta.server.nio.NioServer;
 import com.wowsanta.wession.cluster.ClusterNode;
 import com.wowsanta.wession.cluster.ClusterRepository;
@@ -34,11 +35,25 @@ public class ClusterManager extends ClusterRepository{
 			instance = clusterManger;
 		}
 	}
-	
-	public void start() {
-		this.clusterServer.initialize();
-		this.clusterServer.start();
+	public boolean initialize()  {
+		boolean initialized = false;
+		try {
+			initialized = this.clusterServer.initialize();
+			initialized = super.initialize();
+		} catch (ServerException e) {
+			LOG.system().error(e.getMessage(), e);
+			initialized = false;	
+		}finally {
+			LOG.system().info("initialized : {} ", initialized);
+		}
+		return initialized;
+	}
+	public void start() throws ServerException {
+		this.clusterServer.start();	
 		
+		registerClusterNode();	
+	}
+	private void registerClusterNode() {
 		ClusterNode this_node = new ClusterNode();
 		this_node.setName(this.nodeName);
 		this_node.setAddress(this.clusterServer.getIpAddr());
@@ -59,7 +74,7 @@ public class ClusterManager extends ClusterRepository{
 			} catch (RespositoryException e) {
 				LOG.system().error(e.getMessage(), e);
 			}
-		}		
+		}
 	}
 	public void stop() {
 		this.clusterServer.stop();

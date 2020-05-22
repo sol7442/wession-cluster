@@ -8,7 +8,6 @@ import com.wowsanta.server.ServerException;
 import com.wowsanta.server.ServiceProcess;
 import com.wowsanta.server.nio.NioConnection;
 import com.wowsanta.util.ObjectBuffer;
-import com.wowsanta.wession.message.WessionMessage;
 
 
 public class ClusterConnection extends NioConnection {
@@ -31,7 +30,7 @@ public class ClusterConnection extends NioConnection {
 				readBuffer.mark();
 				LOG.application().debug("mark : {}", readBuffer);
 				
-				WessionMessage message = parse(readBuffer);
+				ClusterMessage message = parse(readBuffer);
 				
 				if(message == null) {
 					readBuffer.reset();
@@ -63,7 +62,7 @@ public class ClusterConnection extends NioConnection {
 		return size;
 	}
 
-	private ServiceProcess<?,?> createProcess(WessionMessage message) {
+	private ServiceProcess<?,?> createProcess(ClusterMessage message) {
 		AbstractClusterProcess process = null;
 		switch (message.getMessageType()) {
 		case REGISTER:
@@ -111,7 +110,7 @@ public class ClusterConnection extends NioConnection {
 		return size;
 	}
 	
-	private WessionMessage parse(ByteBuffer buffer) throws IOException, ServerException {
+	private ClusterMessage parse(ByteBuffer buffer) throws IOException, ServerException {
 		int length = buffer.getInt();
 		LOG.application().debug("read 1 : {}/{}", length,readBuffer);
 		if(length < 1) {
@@ -127,7 +126,7 @@ public class ClusterConnection extends NioConnection {
 			buffer.get(data);
 			LOG.application().debug("read 2 : {}/{}", data.length,readBuffer);
 			
-			return ObjectBuffer.toObject(data,WessionMessage.class);
+			return ObjectBuffer.toObject(data,ClusterMessage.class);
 		} catch (ClassNotFoundException e) {
 			throw new ServerException("Request Deserialized Failed : " + e.getMessage() , e) ;
 		}

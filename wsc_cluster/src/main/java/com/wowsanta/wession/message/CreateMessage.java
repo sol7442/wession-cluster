@@ -1,5 +1,6 @@
 package com.wowsanta.wession.message;
 
+import com.wowsanta.wession.cluster.ClusterMessage;
 import com.wowsanta.wession.session.Wession;
 
 import lombok.Data;
@@ -7,7 +8,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class CreateMessage extends WessionMessage {
+public class CreateMessage extends ClusterMessage {
 	private static final long serialVersionUID = -6548085900988010595L;
 	MessageType messageType = MessageType.CREATE;
 	private Wession wession;

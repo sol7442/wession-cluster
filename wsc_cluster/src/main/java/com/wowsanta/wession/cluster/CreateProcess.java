@@ -5,11 +5,10 @@ import com.wowsanta.server.ServerException;
 import com.wowsanta.wession.manager.CoreManager;
 import com.wowsanta.wession.manager.IndexManager;
 import com.wowsanta.wession.message.CreateMessage;
-import com.wowsanta.wession.message.WessionMessage;
 
 public class CreateProcess extends AbstractClusterProcess {
 
-	public CreateProcess(WessionMessage message) {
+	public CreateProcess(ClusterMessage message) {
 		setRequest(new ClusterRequest(message));
 	}
 

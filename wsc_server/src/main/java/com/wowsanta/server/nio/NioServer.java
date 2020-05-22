@@ -55,7 +55,7 @@ public class NioServer extends Server implements  Runnable {
 	transient BlockingQueue<ServiceProcess<?,?>> rquestQueue ;
 	
 	@Override
-	public boolean initialize() {
+	public boolean initialize() throws ServerException {
 		try {
 			LOG.system().info("initialize : {} ==================== \n{}",this.name, toString(true));
 			serverExecutor  = Executors.newSingleThreadExecutor();
@@ -72,17 +72,15 @@ public class NioServer extends Server implements  Runnable {
 			this.connectionFactory.setBufferSize(bufferSize);
 			
 			return true;
-		} catch (Exception e) {
+		} catch (Exception e) {			
 			LOG.system().error("Server Handler Class Error : " + e.getMessage(), e);
+			throw new ServerException(e.getMessage(), e);
 		} 
-		
-		return false;
 	}
 
 	@Override
-	public void start() {
+	public void start() throws ServerException {
 		try {
-			
 			for(int i=0; i<threadSize; i++) {
 				ServiceDispatcher serviceDispatcher = (ServiceDispatcher) Class.forName(serviceDispatcherClass).newInstance();
 				serviceDispatcher.bindRquestQueue(this.rquestQueue);
@@ -100,6 +98,7 @@ public class NioServer extends Server implements  Runnable {
 			serverExecutor.execute(this);
 		} catch (Exception e) {
 			LOG.application().error("Server Handler Class Error : " + e.getMessage(), e);
+			throw new ServerException(e.getMessage(), e);
 		} 
 	}
 

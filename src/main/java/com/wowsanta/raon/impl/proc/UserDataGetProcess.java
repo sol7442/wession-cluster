@@ -17,7 +17,7 @@ import com.wowsanta.wession.WessionCluster;
 public class UserDataGetProcess extends AbstractSessionProcess {
 	public UserDataGetProcess(RaonSessionMessage message) {
 		setRequest(new SessionRequest(message));
-		setResponse(new SessionResponse(new UserDataGetResponseMessage()));
+		setResponse(new SessionResponse(new UserDataGetResponseMessage(), getRequest().getSession()));
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class UserDataGetProcess extends AbstractSessionProcess {
 				error_message.setCode(new INT(5000));
 				error_message.setMessage(new STR("User Data is Null"));
 				
-				setResponse(new SessionResponse(error_message));
+				setResponse(new SessionResponse(error_message, getRequest().getSession()));
 			}
 			
 

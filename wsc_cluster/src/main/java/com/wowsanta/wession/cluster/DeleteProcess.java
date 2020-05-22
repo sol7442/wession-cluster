@@ -5,11 +5,10 @@ import com.wowsanta.server.ServerException;
 import com.wowsanta.wession.manager.CoreManager;
 import com.wowsanta.wession.manager.IndexManager;
 import com.wowsanta.wession.message.DeleteMessage;
-import com.wowsanta.wession.message.WessionMessage;
 
 public class DeleteProcess extends AbstractClusterProcess {
 
-	public DeleteProcess(WessionMessage message) {
+	public DeleteProcess(ClusterMessage message) {
 		setRequest(new ClusterRequest(message));
 	}
 
