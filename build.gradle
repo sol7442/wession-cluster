@@ -54,7 +54,7 @@ task copyBuildLibs(type: Copy, group:'build', dependsOn: 'jar') {
     include "**/wsc*.*","**/wow-*.*","**/wession-*.*"
 }
 
-task copyRuntimeLibs(type: Copy) {
+task copyRuntimeLibs(type: Copy, group:'build') {
     into "libs"
     from configurations.runtime
     exclude "**/wsc*.*","**/wow-*.*"

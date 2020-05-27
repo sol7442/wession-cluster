@@ -55,57 +55,82 @@ public class WessionCluster implements WessionRepository<Wession> {
 	
 	@Override
 	public void create(Wession session) throws RespositoryException {
-		long start_time = System.currentTimeMillis();
-		LOG.process().info("{} / ----",session.getKey());
-		for (WessionRepository<Wession> repository : repositoris) {
-			repository.create(session);
+		try {
+			for (WessionRepository<Wession> repository : repositoris) {
+				repository.create(session);
+			}	
+		}catch (RespositoryException e) {
+			throw e;
+		}finally {
+			LOG.process().info("{} ({}): {}",session.getKey(),size(), session );	
 		}
-		long end_time = System.currentTimeMillis();
-		LOG.process().debug("{} / {}",session.getKey(), (end_time - start_time));
 	}
 
 	@Override
 	public Wession read(String key) throws RespositoryException {
-		LOG.process().info("{}",key);
-		return coreRepository.read(key);
+		Wession session = null;
+		try {
+			session = coreRepository.read(key);	
+		}catch (RespositoryException e) {
+			throw e;
+		}finally {
+			LOG.process().info("{} : {}",key, session);	
+		}
+		return session;
 	}
 
 	@Override
 	public void update(Wession session) throws RespositoryException {
-		long start_time = System.currentTimeMillis();
-		LOG.process().info("{} / ----",session.getKey());
-		for (WessionRepository<Wession> repository : repositoris) {
-			repository.update(session);
+		Wession old_sesion = null;
+		try {
+			old_sesion = coreRepository.read(session.getKey());
+			if(old_sesion != null) {
+				for (WessionRepository<Wession> repository : repositoris) {
+					repository.update(session);
+				}		
+			}else {
+				LOG.process().warn("old session is null");
+			}
+		}catch (RespositoryException e) {
+			throw e;
+		}finally {
+			LOG.process().info("{} : {}",session.getKey(), session);
 		}
-		long end_time = System.currentTimeMillis();
-		LOG.process().debug("{} / {}",session.getKey(), (end_time - start_time));
 	}
 
 	@Override
 	public void delete(Wession session) throws RespositoryException {
-		long start_time = System.currentTimeMillis();
-		LOG.process().info("{} / ----",session.getKey());
-		for (WessionRepository<Wession> repository : repositoris) {
-			repository.delete(session);
+		Wession old_sesion = null;
+		try {
+			old_sesion = coreRepository.read(session.getKey());
+			if(old_sesion != null) {
+				for (WessionRepository<Wession> repository : repositoris) {
+					repository.delete(session);
+				}		
+			}else {
+				LOG.process().warn("old session is null");
+			}
+		}catch (RespositoryException e) {
+			throw e;
+		}finally {
+			LOG.process().info("{} : {}",session.getKey(), session);
 		}
-		long end_time = System.currentTimeMillis();
-		LOG.process().debug("{} / {}",session.getKey(), (end_time - start_time));
 	}
 
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
-		long start_time = System.currentTimeMillis();
-		LOG.process().info("{} / ----",request.getFilter());
-		
 		SearchResponseMessage response = null;
-		if(isIndexSearch(request.getFilter())) {
-			response = indexRepository.search(request);
-		}else {
-			response = coreRepository.search(request);
+		try {
+			if(isIndexSearch(request.getFilter())) {
+				response = indexRepository.search(request);
+			}else {
+				response = coreRepository.search(request);
+			}
+		}catch (RespositoryException e) {
+			throw e;
+		}finally {
+			LOG.process().debug("{} / {}",request, response);		
 		}
-		
-		long end_time = System.currentTimeMillis();
-		LOG.process().debug("{} / {} / {}",request.getFilter(), response.getTotalResults() , (end_time - start_time));		
 		return response;
 	}
 	

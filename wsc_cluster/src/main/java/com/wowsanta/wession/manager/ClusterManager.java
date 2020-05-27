@@ -11,6 +11,7 @@ import com.wowsanta.server.nio.NioServer;
 import com.wowsanta.wession.cluster.ClusterNode;
 import com.wowsanta.wession.cluster.ClusterRepository;
 import com.wowsanta.wession.message.RegisterResponseMessage;
+import com.wowsanta.wession.message.SyncResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 
 import lombok.Data;
@@ -22,7 +23,6 @@ public class ClusterManager extends ClusterRepository{
 	private static ClusterManager instance = null;
 
 	private NioServer clusterServer;
-	private String nodeName;
 	
 	public static ClusterManager getInstance() {
 		if(instance == null) {
@@ -50,31 +50,52 @@ public class ClusterManager extends ClusterRepository{
 	}
 	public void start() throws ServerException {
 		this.clusterServer.start();	
-		
-		registerClusterNode();	
-	}
-	private void registerClusterNode() {
-		ClusterNode this_node = new ClusterNode();
-		this_node.setName(this.nodeName);
-		this_node.setAddress(this.clusterServer.getIpAddr());
-		this_node.setPort(this.clusterServer.getPort());
-		
-		Set<Entry<String, ClusterNode>> node_set =  nodeMap.entrySet();
-		for (Entry<String, ClusterNode> node_entry : node_set) {
-			ClusterNode cluster_node = node_entry.getValue();
-			cluster_node.initialize();
-			try {
-				RegisterResponseMessage message = cluster_node.register(this_node);
-				if(message != null) {
-					cluster_node.setActive(true); 
-				}else {
-					cluster_node.setActive(false);
-				}
-				LOG.system().info("Register result : {}/{}",cluster_node.getName(),message);
-			} catch (RespositoryException e) {
-				LOG.system().error(e.getMessage(), e);
-			}
+		try {
+			registerClusterNode();
+		} catch (RespositoryException e) {
+			e.printStackTrace();
 		}
+	}
+	
+	public void registerClusterNode() throws RespositoryException {
+		try {
+			ClusterNode this_node = new ClusterNode();
+			this_node.setName(this.nodeName);
+			this_node.setAddress(this.clusterServer.getIpAddr());
+			this_node.setPort(this.clusterServer.getPort());
+			
+			Set<Entry<String, ClusterNode>> node_set =  nodeMap.entrySet();
+			
+			ClusterNode sync_cluster = this_node;
+			for (Entry<String, ClusterNode> node_entry : node_set) {
+				ClusterNode cluster_node = node_entry.getValue();
+				if(!nodeName.equals(cluster_node.getName()) && !cluster_node.isActive()) {
+					cluster_node.initialize();
+					try {
+						RegisterResponseMessage response = cluster_node.register(this_node);
+						if(response != null) {
+							cluster_node.setActive(true);
+							if(response.getSize() > sync_cluster.size()) {
+								sync_cluster = cluster_node;
+							}
+						}else {
+							cluster_node.setActive(false);
+						}
+						LOG.system().info("Register result : {}/{}",cluster_node.getName(),response);	
+					} catch (RespositoryException e) {
+						LOG.system().error(e.getMessage(), e);
+					}	
+				}
+			}
+			
+			if(!sync_cluster.getName().equals(this_node.getName())) {
+				SyncResponseMessage sync_response = sync_cluster.syncNode(this_node);
+				LOG.system().info("Sync result : {}/{}",sync_cluster.getName(),sync_response);
+			}
+		} catch (Exception e) {
+			throw new RespositoryException(e.getMessage(), e);
+		}
+		
 	}
 	public void stop() {
 		this.clusterServer.stop();
@@ -92,6 +113,9 @@ public class ClusterManager extends ClusterRepository{
 		cluster_node.initialize();
 		cluster_node.setActive(true);
 		LOG.system().info("{}/{}",node.getName(),cluster_node);
+	}
+	public ClusterNode getClusterNode(String name) {
+		return this.nodeMap.get(name);
 	}
 
 	

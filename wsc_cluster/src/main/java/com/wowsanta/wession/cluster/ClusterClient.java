@@ -36,13 +36,13 @@ public class ClusterClient extends NioClient {
 	}
 	
 	@Override
-	public Message send(Message message) throws IOException, ClassNotFoundException {
-		write(message);
+	public <T extends Message> T send(Message reqeust, Class<T> type) throws IOException, ClassNotFoundException {
+		write(reqeust);
 		
 		ByteBuffer buffer = ByteBuffer.allocate(1024);
 		socketChannel.read(buffer);
 		
-		return ObjectBuffer.toObject(buffer.array(),Message.class);
+		return ObjectBuffer.toObject(buffer.array(),type);
 	}
 
 }

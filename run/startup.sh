@@ -13,8 +13,8 @@ CLASSPATH='';
 ###########################
 APP_PACKAGE='ws-wession'
 MAIN_CLASS='com.wowsanta.daemon.WowSantaDaemon';
-SERVICE_CLASS='com.wowsanta.wession.impl.Wession';
-SERVICE_CONFIG='../config/nio.server.json';
+SERVICE_CLASS='com.wowsanta.wession.impl.WessionLancher';
+SERVICE_CONFIG='../config/wession_lancher_01.json';
 PID_FILE='wow-daemon.pid'
 
 VM_OPTION='-Xms64m -Xmx512m'
@@ -77,7 +77,8 @@ nohup ${JAVA_RUN} \
     -classpath ${CLASSPATH} \
     ${VM_OPTION} \
     -Dapp.name=${APP_PACKAGE} \
-    -Dconfig.file=${CONF_PATH}/dev.wession.json \
+    -Dinst.name=01 \
+    -Dconfig.file=${CONF_PATH}//wession_lancher_01.json \
     -Dlogback.path=${LOG_PATH} \
     -Dlogback.mode=${LOG_MODE} \
     -Dlogback.configurationFile=${LOG_CONF} \

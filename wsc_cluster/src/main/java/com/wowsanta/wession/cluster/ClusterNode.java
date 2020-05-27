@@ -18,6 +18,8 @@ import com.wowsanta.wession.message.RegisterRequestMessage;
 import com.wowsanta.wession.message.RegisterResponseMessage;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
+import com.wowsanta.wession.message.SyncRequestMessage;
+import com.wowsanta.wession.message.SyncResponseMessage;
 import com.wowsanta.wession.message.UpdateMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
@@ -41,6 +43,7 @@ public class ClusterNode implements WessionRepository<Wession>, Serializable{
     boolean testOnCreate  = true;
     boolean active 		  = false;
     
+    transient int size;
     transient GenericObjectPool<NioClient> objectPool ;
 	public void initialize() {
 	    objectPool =  new GenericObjectPool<NioClient>(new ClusterClientPool(address, port));
@@ -54,7 +57,6 @@ public class ClusterNode implements WessionRepository<Wession>, Serializable{
 	@Override
 	public void create(Wession session) throws RespositoryException {
 		LOG.process().debug("create.cluster.{} : {} ",this.name,session.getKey());
-		
 		NioClient client = null;
 		try {
 			client = objectPool.borrowObject();	
@@ -71,12 +73,11 @@ public class ClusterNode implements WessionRepository<Wession>, Serializable{
 	}
 	@Override
 	public void update(Wession s) throws RespositoryException {
+		LOG.process().debug("update.cluster.{} : {} ",this.name,s.getKey());
 		NioClient client = null;
 		try {
 			client = objectPool.borrowObject();	
 			client.write(new UpdateMessage(s));
-			
-			LOG.process().debug("update.cluster.{} : {} ",this.name,s.getKey());
 		} catch (Exception e) {
 			throw new RespositoryException(e.getMessage(),e);
 		}finally {
@@ -100,7 +101,7 @@ public class ClusterNode implements WessionRepository<Wession>, Serializable{
 	}
 	public RegisterResponseMessage register(ClusterNode reg_node) throws RespositoryException {
 		try {
-			
+
 			final ClusterNode this_node = this;
 			Future<RegisterResponseMessage> future = Executors.newSingleThreadExecutor().submit(new Callable<RegisterResponseMessage>() {
 				@Override
@@ -112,7 +113,7 @@ public class ClusterNode implements WessionRepository<Wession>, Serializable{
 						if(client != null) {
 							RegisterRequestMessage request_message = new RegisterRequestMessage();
 							request_message.setNode(reg_node);
-							return (RegisterResponseMessage) client.send(request_message);	
+							return client.send(request_message,RegisterResponseMessage.class);	
 						}else {
 							return new RegisterResponseMessage();
 						}
@@ -134,6 +135,7 @@ public class ClusterNode implements WessionRepository<Wession>, Serializable{
 				LOG.system().info("Register failed : {} / {}", this_node.getName(), reg_node);
 				return null;
 			}
+			
 		} catch (Exception e) {
 			LOG.system().error(e.getMessage());
 			throw new RespositoryException(e.getMessage(), e);
@@ -142,7 +144,7 @@ public class ClusterNode implements WessionRepository<Wession>, Serializable{
 	
 	@Override
 	public int size() {
-		return 0;
+		return size;
 	}
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage r) throws RespositoryException {
@@ -150,6 +152,38 @@ public class ClusterNode implements WessionRepository<Wession>, Serializable{
 	}
 	public void close() {
 		this.objectPool.close();
+	}
+	public void sync(Wession session) throws RespositoryException {
+		NioClient client = null;
+		try {
+			client = objectPool.borrowObject();	
+			client.write(new CreateMessage(session));
+		} catch (Exception e) {
+			throw new RespositoryException(e.getMessage(),e);
+		}finally {
+			objectPool.returnObject(client);
+			LOG.process().debug("sync.cluster.{} : {} ",this.name,session.getKey());
+		}
+	}
+	public SyncResponseMessage syncNode(ClusterNode sync_node) throws RespositoryException{
+		NioClient client = null;
+		try {
+			LOG.system().info("cluseter.node.sync : {} / {}", this.getName(),sync_node.getName() );
+			client = objectPool.borrowObject();
+			if(client != null) {
+				SyncRequestMessage request_message = new SyncRequestMessage();
+				request_message.setNode(sync_node);
+				return client.send(request_message,SyncResponseMessage.class);	
+			}else {
+				return new SyncResponseMessage();
+			}
+			
+		} catch (Exception e) {
+			LOG.system().info("Sync failed : {} / {}", this.getName(), sync_node);
+			throw new RespositoryException(e.getMessage(),e);
+		}finally {
+			objectPool.returnObject(client);
+		}
 	}
 
 

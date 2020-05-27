@@ -40,7 +40,7 @@ public class IndexNode implements WessionRepository<Wession>{
 			}
 			list.add(session);
 			cache.put(index_key, list);
-			LOG.process().debug("create.index.{}={} : {} ",keyName,index_key, session.getKey());
+			LOG.process().info("create.index.{}={} : {} / {} ",keyName,index_key, session.getKey() ,list.size());
 		}
 	}
 	public List<Wession> list(String index_key) throws RespositoryException {

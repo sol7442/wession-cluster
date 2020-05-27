@@ -22,7 +22,7 @@ public class UnregisterProcess extends AbstractSessionProcess {
 	public void porcess() throws ServerException {
 		try {
 			UnregisterRequestMessage request_message = (UnregisterRequestMessage) getRequest().getMessage();
-			LOG.process().info("request  : {} ", request_message);
+			LOG.application().info("request  : {} ", request_message);
 			
 			String user_id      = request_message.getUserId().getValue();
 			INDEX index         = request_message.getSessionIndex();
@@ -34,9 +34,9 @@ public class UnregisterProcess extends AbstractSessionProcess {
 			}
 			
 			UnregisterResonseMessage response_message = (UnregisterResonseMessage) getResponse().getMessage();
-			LOG.process().debug("response : {} ", response_message);
+			LOG.application().debug("response : {} ", response_message);
 		} catch (Exception e) {
-			LOG.process().error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

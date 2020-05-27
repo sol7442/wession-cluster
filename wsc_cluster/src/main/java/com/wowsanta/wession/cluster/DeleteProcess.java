@@ -16,13 +16,13 @@ public class DeleteProcess extends AbstractClusterProcess {
 	public void porcess() throws ServerException {
 		try {
 			DeleteMessage request_messge   = (DeleteMessage) request.getMessage();
-			LOG.process().info("request : {} ",request_messge);
+			LOG.application().info("request : {} ",request_messge);
 			
 			CoreManager.getInstance().delete(request_messge.getWession());
 			IndexManager.getInstance().delete(request_messge.getWession());
 			
 		}catch (Exception e) {
-			LOG.process().error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}finally {
 			

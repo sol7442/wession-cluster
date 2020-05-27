@@ -14,10 +14,14 @@ import com.wowsanta.wession.session.WessionRepository;
 
 public class CoreRepository implements WessionRepository<Wession> {
 
-	ConcurrentMap<String,Wession> core = new ConcurrentHashMap<>();
+	int capacity;
+	transient ConcurrentMap<String,Wession> core = new ConcurrentHashMap<>();
 	
 	public boolean initialize() {
-		LOG.system().info("CoreRepository : {} ", true);
+		if(capacity == 0) {
+			capacity = Integer.MAX_VALUE;
+		}
+		core = new ConcurrentHashMap<String, Wession>();
 		return true;
 	}
 	
@@ -26,9 +30,19 @@ public class CoreRepository implements WessionRepository<Wession> {
 		if(session == null) {
 			throw new RespositoryException("NULL VALUE");
 		}
-		
-		core.putIfAbsent(session.getKey(),session);
-		LOG.process().debug("create.core : {} ", session.getKey());
+		Wession old_session = null;
+		try {
+			old_session = core.get(session.getKey());
+			if(old_session == null) {
+				core.put(session.getKey(),session);
+			}else {
+				LOG.process().warn("old session : {} / ", old_session, session);
+			}
+		}catch (Exception e) {
+			throw e;
+		}finally {
+			LOG.process().info("create.core : {} / {}", session.getKey(), core.size());
+		}
 	}
 
 	@Override
@@ -40,12 +54,12 @@ public class CoreRepository implements WessionRepository<Wession> {
 	@Override
 	public void update(Wession session) throws RespositoryException {
 		core.put(session.getKey(),session);
-		LOG.process().debug("core.update : {} ", session.getKey());
+		LOG.process().info("core.update : {} ", session.getKey());
 	}
 
 	@Override
 	public void delete(Wession session) throws RespositoryException {
-		LOG.process().debug("core.delete : {} ", session.getKey());
+		LOG.process().info("core.delete : {} ", session.getKey());
 		core.remove(session.getKey());		
 	}
 

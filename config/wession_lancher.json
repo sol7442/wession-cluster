@@ -2,6 +2,7 @@
   "interfaceServer": {
     "confClass": "com.wowsanta.wession.impl.server.RaonSessionServer",
     "confValue": {
+      "name": "RaonSessionServer",
       "ipAddr": "127.0.0.1",
       "port": 5050,
       "core": 2,
@@ -13,8 +14,12 @@
       "serviceDispatcherClass": "com.wowsanta.wession.impl.server.RaonSessionServiceDispatcher"
     }
   },
+  "coreManager": {
+    "capacity": 0
+  },
   "clusterManger": {
     "clusterServer": {
+      "name": "WessionClusterServer",
       "ipAddr": "127.0.0.1",
       "port": 6060,
       "core": 2,
@@ -25,11 +30,12 @@
       "connectionFactoryClass": "com.wowsanta.wession.cluster.ClusterConnectionFactory",
       "serviceDispatcherClass": "com.wowsanta.wession.cluster.ClusterServiceDispathcer"
     },
+    "nodeName": "dev_01",
     "nodeMap": {
       "dev_02": {
         "name": "dev_02",
         "address": "127.0.0.1",
-        "port": 6060,
+        "port": 6061,
         "maxIdle": 5,
         "minIdle": 2,
         "testWhileIdle": false,
@@ -39,11 +45,11 @@
     },
     "threadCount": 0
   },
-  "indexService": {
+  "indexManager": {
     "keyList": [
-      "name",
       "userId"
     ],
-    "wessionClassName": "com.wowsanta.raon.impl.session.RaonSession"
+    "wessionClassName": "com.wowsanta.raon.impl.session.RaonSession",
+    "threadCount": 0
   }
 }

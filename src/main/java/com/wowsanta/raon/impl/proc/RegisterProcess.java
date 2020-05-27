@@ -31,7 +31,7 @@ public class RegisterProcess extends AbstractSessionProcess {
 	public void porcess() throws ServerException {
 		try {
 			RegisterRequestMessage request_message = (RegisterRequestMessage) getRequest().getMessage();
-			LOG.process().info("request  : {} ", request_message);
+			LOG.application().info("request  : {} ", request_message);
 			
 
 			byte[] token_key = new byte[8];
@@ -51,7 +51,7 @@ public class RegisterProcess extends AbstractSessionProcess {
 			
 			List<Wession> session_list = response.getResources();
 			//------------------
-			LOG.process().info("policy : {} / {}", user_id, session_list.size());
+			LOG.application().info("policy : {} / {}", user_id, session_list.size());
 			//------------------
 			
 			
@@ -72,9 +72,9 @@ public class RegisterProcess extends AbstractSessionProcess {
 			response_message.setLot(new INT((int) System.currentTimeMillis()));
 			response_message.setData(data);;
 			
-			LOG.process().info("response : {} ", response_message);
+			LOG.application().info("response : {} ", response_message);
 		} catch (Exception e) {
-			LOG.process().error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

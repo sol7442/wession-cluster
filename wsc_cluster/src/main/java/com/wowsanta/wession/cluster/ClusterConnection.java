@@ -43,8 +43,12 @@ public class ClusterConnection extends NioConnection {
 			}while(readBuffer.remaining() > 0);
 			
 		} catch (Exception e) {
-			LOG.application().error("{}",e.getMessage(), e);
 			readBuffer.clear();
+			try {
+				LOG.application().error("{}-{}",client.getRemoteAddress(), e.getMessage());
+			} catch (IOException e1) {
+				LOG.application().error(e1.getMessage(),e1);
+			}
 			throw new ServerException(e.getMessage(),e);
 		}finally {
 			
@@ -76,6 +80,9 @@ public class ClusterConnection extends NioConnection {
 			break;
 		case DELETE:
 			process = new DeleteProcess(message);
+			break;
+		case SYNC:
+			process = new SyncProcess(message);
 			break;
 		default:
 			process = new ErrorProcess(message);

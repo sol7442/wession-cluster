@@ -24,7 +24,7 @@ public class UserDataDelProcess extends AbstractSessionProcess {
 		try {
 
 			UserDataDelRequestMessage  request_message  = (UserDataDelRequestMessage) getRequest().getMessage();
-			LOG.process().info("request  : {} ", request_message);
+			LOG.application().info("request  : {} ", request_message);
 			
 			String user_id      = request_message.getUserId().getValue();
 			INDEX index         = request_message.getSessionIndex();
@@ -33,7 +33,7 @@ public class UserDataDelProcess extends AbstractSessionProcess {
 			RaonSession session = (RaonSession) WessionCluster.getInstance().read(session_key);
 			if(session != null) {
 				String user_data = (String) session.getAttribute("user.data");
-				LOG.process().debug("user.data : {} ", user_data);
+				LOG.application().debug("user.data : {} ", user_data);
 				session.removeAttribute("user.data");
 				WessionCluster.getInstance().update(session);				
 			}
@@ -41,9 +41,9 @@ public class UserDataDelProcess extends AbstractSessionProcess {
 			UserDataDelResponseMessage response_message = (UserDataDelResponseMessage) getResponse().getMessage();
 			response_message.setLot(new INT((int)System.currentTimeMillis()));
 			
-			LOG.process().info("response : {} ", response_message);
+			LOG.application().info("response : {} ", response_message);
 		} catch (Exception e) {
-			LOG.process().error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

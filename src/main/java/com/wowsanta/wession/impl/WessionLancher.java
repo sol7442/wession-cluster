@@ -21,10 +21,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper=false)
 public class WessionLancher extends JsonConfiguration implements DaemonService {
 	
-	static {
-		JsonConfiguration.addTypeAdapter(Server.class);
-	}
-	
 	Server	interfaceServer;
 	
 	CoreManager     coreManager;
@@ -33,22 +29,31 @@ public class WessionLancher extends JsonConfiguration implements DaemonService {
 	
 	public static void main(String[] args) {
 		String config_file = args[0];
-		LOG.system().info("================================================================== ");
-		LOG.system().info("wowsata wession cluster edition");
-		LOG.system().info("version : {} ", "v2.0.1");
-		LOG.system().info("build   : {}", "2020.05.20");
-		LOG.system().info("release : {}", "2020.06.10");
-		LOG.system().info("@2010 wowsanta.com, all right reserved.");
-		LOG.system().info("================================================================== {}", new Date());
-		LOG.system().info("WessionLancher Configuration File : {} ", config_file);
-		WessionLancher lancher = WessionLancher.load(config_file,WessionLancher.class);
+		
+		WessionLancher lancher = WessionLancher.load(config_file);
 		lancher.initialize(null);
 		lancher.start();
-		LOG.system().info("================================================================== {}", config_file);
 	}
 	@Override
-	public boolean initialize(String config) {
+	public boolean initialize(String config_file) {
 		try {
+			LOG.system().info("================================================================== ");
+			LOG.system().info("wowsata wession cluster edition");
+			LOG.system().info("version : {} ", "v2.0.1");
+			LOG.system().info("build   : {}", "2020.05.20");
+			LOG.system().info("release : {}", "2020.06.10");
+			LOG.system().info("@2010 wowsanta.com, all right reserved.");
+			LOG.system().info("================================================================== {}", new Date());
+			LOG.system().info("WessionLancher Configuration File : {} ", config_file);
+			LOG.system().info("================================================================== {}", config_file);
+			
+			if(config_file != null) {
+				WessionLancher lancher = WessionLancher.load(config_file);
+				this.clusterManger   = lancher.getClusterManger();
+				this.indexManager    = lancher.getIndexManager();
+				this.interfaceServer = lancher.getInterfaceServer();
+			}
+			
 			coreManager = CoreManager.getInstance();
 			ClusterManager.setInstance(clusterManger);
 			IndexManager.setInstance(indexManager);
@@ -80,5 +85,9 @@ public class WessionLancher extends JsonConfiguration implements DaemonService {
 	public void stop() {
 		interfaceServer.stop();
 		clusterManger.stop();
+	}
+	public static WessionLancher load(String file_name) {
+		JsonConfiguration.addTypeAdapter(Server.class);
+		return load(file_name,WessionLancher.class);
 	}
 }

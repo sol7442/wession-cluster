@@ -26,7 +26,7 @@ public class UserDataAddProcess extends AbstractSessionProcess {
 		try {
 
 			UserDataAddRequestMessage  request_message  = (UserDataAddRequestMessage) getRequest().getMessage();
-			LOG.process().info("request  : {} ", request_message);
+			LOG.application().info("request  : {} ", request_message);
 			
 			String user_id      = request_message.getUserId().getValue();
 			INDEX index         = request_message.getSessionIndex();
@@ -44,9 +44,9 @@ public class UserDataAddProcess extends AbstractSessionProcess {
 			UserDataAddResponseMessage response_message = (UserDataAddResponseMessage) getResponse().getMessage();
 			response_message.setLot(new INT((int)System.currentTimeMillis()));
 			
-			LOG.process().info("response : {} ", response_message);
+			LOG.application().info("response : {} ", response_message);
 		} catch (Exception e) {
-			LOG.process().error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

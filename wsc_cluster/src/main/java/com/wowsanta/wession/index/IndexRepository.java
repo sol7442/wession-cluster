@@ -80,7 +80,7 @@ public class IndexRepository implements WessionRepository<Wession> {
 	
 	@Override
 	public void create(Wession session) throws RespositoryException {
-		LOG.process().debug("create.index : {} ", session.getKey());
+		LOG.process().info("create.index : {} ", session.getKey());
 		for (String key_name : keyList) {
 			IndexNode node = nodeMap.get(key_name);
 			node.create(session);
@@ -103,7 +103,7 @@ public class IndexRepository implements WessionRepository<Wession> {
 
 	@Override
 	public void delete(Wession session) throws RespositoryException {
-		LOG.process().debug("delete.index : {} ", session.getKey());
+		LOG.process().info("delete.index : {} ", session.getKey());
 		for (String key_name : keyList) {
 			IndexNode node = nodeMap.get(key_name);
 			node.delete(session);

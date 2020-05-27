@@ -5,7 +5,7 @@ import com.wowsanta.wession.core.CoreRepository;
 
 public class CoreManager extends CoreRepository {
 	private static CoreManager instance = null;
-	private boolean initialized = false;
+	private transient boolean initialized = false;
 	
 	public static CoreManager getInstance() {
 		if(instance == null) {
@@ -17,7 +17,7 @@ public class CoreManager extends CoreRepository {
 	
 	public boolean initialize() {
 		if(initialized == false) {
-			initialized = true;
+			initialized = super.initialize();
 		}
 		LOG.system().info("CoreManager : {} ", initialized);
 		return initialized;

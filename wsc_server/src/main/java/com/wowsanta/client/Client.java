@@ -14,6 +14,6 @@ public abstract class Client extends JsonConfiguration{
 	public abstract boolean connect() throws IOException;
 	public abstract void close() throws IOException;
 	public abstract void write(Message reqeust)throws IOException;
-	public abstract Message send(Message reqeust)throws IOException, ClassNotFoundException;
+	public abstract <T extends Message> T send(Message reqeust , Class<T> type)throws IOException, ClassNotFoundException;
 
 }

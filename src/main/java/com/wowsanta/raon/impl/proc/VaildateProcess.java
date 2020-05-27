@@ -29,7 +29,7 @@ public class VaildateProcess extends AbstractSessionProcess {
 		try {
 
 			VaildateRequestMessage  request_message  = (VaildateRequestMessage) getRequest().getMessage();
-			LOG.process().info("request  : {} ", request_message);
+			LOG.application().info("request  : {} ", request_message);
 			
 			
 			String user_id      = request_message.getUserId().getValue();
@@ -48,7 +48,7 @@ public class VaildateProcess extends AbstractSessionProcess {
 			if(session != null) {
 				if(ramdom_value.equals(session.getRandom()) && token_val.equals(session.getToken())){
 					String otp_val = (String) session.getAttribute("opt.val");
-					LOG.process().debug("token_opt : {}-{}", token_opt, otp_val);
+					LOG.application().debug("token_opt : {}-{}", token_opt, otp_val);
 					
 					RSTRS data = new RSTRS();
 					byte[] token_otp_key = new byte[8];
@@ -81,9 +81,9 @@ public class VaildateProcess extends AbstractSessionProcess {
 				setResponse(new SessionResponse(error_message,getRequest().getSession()));
 			}
 			
-			LOG.process().info("response : {} ", getResponse().getMessage());
+			LOG.application().info("response : {} ", getResponse().getMessage());
 		} catch (Exception e) {
-			LOG.process().error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

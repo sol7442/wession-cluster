@@ -25,7 +25,7 @@ public class UserDataGetProcess extends AbstractSessionProcess {
 		try {
 
 			UserDataGetRequestMessage  request_message  = (UserDataGetRequestMessage) getRequest().getMessage();
-			LOG.process().info("request  : {} ", request_message);
+			LOG.application().info("request  : {} ", request_message);
 			
 			String user_id      = request_message.getUserId().getValue();
 			INDEX index         = request_message.getSessionIndex();
@@ -36,7 +36,7 @@ public class UserDataGetProcess extends AbstractSessionProcess {
 				throw new ServerException("Session Not Found : " + session_key);
 			}
 
-			LOG.process().debug("session : {}", session);
+			LOG.application().debug("session : {}", session);
 			String user_data = (String)session.getAttribute("user.data");
 			if(user_data != null) {
 				UserDataGetResponseMessage response_message = (UserDataGetResponseMessage) getResponse().getMessage();
@@ -53,9 +53,9 @@ public class UserDataGetProcess extends AbstractSessionProcess {
 			
 
 			
-			LOG.process().info("response : {} ", getResponse().getMessage());
+			LOG.application().info("response : {} ", getResponse().getMessage());
 		} catch (Exception e) {
-			LOG.process().error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}

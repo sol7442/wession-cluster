@@ -11,8 +11,8 @@ import com.wowsanta.wession.impl.server.RaonSessionServerConnectionFactory;
 import com.wowsanta.wession.impl.WessionLancher;
 import com.wowsanta.wession.impl.server.RaonSessionServer;
 import com.wowsanta.wession.impl.server.RaonSessionServiceDispatcher;
-import com.wowsanta.wession.index.IndexRepository;
 import com.wowsanta.wession.manager.ClusterManager;
+import com.wowsanta.wession.manager.CoreManager;
 import com.wowsanta.wession.manager.IndexManager;
 
 public class WessionCluserterConfigurationTest {
@@ -20,9 +20,20 @@ public class WessionCluserterConfigurationTest {
 	final String file_name = "./config/wession_lancher.json";
 	
 	@Test
+	public void load_test() {
+		WessionLancher w = WessionLancher.load(file_name);
+		System.out.println(w.toString(true));
+
+		
+		w.save(file_name);
+		System.out.println(w.toString(true));
+	}
+	
+	
+	
+	//@Test
 	public void create_test() {
 		WessionLancher w = new WessionLancher();
-		
 		RaonSessionServer session_server = new RaonSessionServer();
 		session_server.setIpAddr("127.0.0.1");
 		session_server.setPort(5050);
@@ -75,10 +86,5 @@ public class WessionCluserterConfigurationTest {
 		System.out.println(w.toString(true));
 	}
 	
-	@Test
-	public void load_test() {
-		WessionLancher w = WessionLancher.load(file_name, WessionLancher.class);
-		
-		System.out.println(w.toString(true));
-	}
+	
 }

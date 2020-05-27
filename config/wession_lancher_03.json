@@ -4,7 +4,7 @@
     "confValue": {
       "name": "RaonSessionServer",
       "ipAddr": "127.0.0.1",
-      "port": 5051,
+      "port": 5053,
       "core": 2,
       "processTimeout": 0,
       "threadSize": 10,
@@ -21,7 +21,7 @@
     "clusterServer": {
       "name": "WessionClusterServer",
       "ipAddr": "127.0.0.1",
-      "port": 6061,
+      "port": 6063,
       "core": 2,
       "processTimeout": 0,
       "threadSize": 10,
@@ -30,7 +30,7 @@
       "connectionFactoryClass": "com.wowsanta.wession.cluster.ClusterConnectionFactory",
       "serviceDispatcherClass": "com.wowsanta.wession.cluster.ClusterServiceDispathcer"
     },
-    "nodeName": "dev_01",
+    "nodeName": "dev_03",
     "nodeMap": {
       "dev_01": {
         "name": "dev_01",

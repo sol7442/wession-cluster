@@ -72,8 +72,8 @@
     </appender> 
     
     
-    <root level="${logback.mode}" additivity="false">
-        <appender-ref ref="STDOUT" />
+    <root level="${logback.mode}" >
+        <appender-ref ref="APP_LOG" />
     </root>
 
     <logger name="application" level="${logback.mode}">
@@ -83,7 +83,7 @@
         <appender-ref ref="SYSTEM_LOG" />
     </logger>
     
-    <logger name="process" level="${logback.mode}" >
+    <logger name="process" level="INFO" >
         <appender-ref ref="PROCESS_LOG" />
     </logger>
     

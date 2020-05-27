@@ -21,13 +21,13 @@ public class HelloProcess extends AbstractSessionProcess {
 			HellowRequestMessage request_message = (HellowRequestMessage) getRequest().getMessage();
 			HellowResonseMessage response_message = (HellowResonseMessage) getResponse().getMessage();
 
-			LOG.process().info("request  : {} ", request_message);
+			LOG.application().info("request  : {} ", request_message);
 			
 			response_message.setCode(new INT(0));
 
-			LOG.process().info("reponse : {} ", response_message);
+			LOG.application().info("reponse : {} ", response_message);
 		} catch (Exception e) {
-			LOG.process().error(e.getMessage(), e);
+			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}
 	}
