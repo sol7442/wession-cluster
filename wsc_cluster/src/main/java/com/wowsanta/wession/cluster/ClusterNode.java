@@ -1,190 +1,244 @@
 package com.wowsanta.wession.cluster;
 
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import com.wowsanta.client.nio.NioClient;
 import com.wowsanta.logger.LOG;
+import com.wowsanta.wession.message.ClusterAckRequestMessage;
+import com.wowsanta.wession.message.ClusterAckResponseMessage;
+import com.wowsanta.wession.message.ClusterPingRequestMessage;
+import com.wowsanta.wession.message.ClusterPingResponseMessage;
+import com.wowsanta.wession.message.ClusterSyncRequestMessage;
+import com.wowsanta.wession.message.ClusterSyncResponseMessage;
 import com.wowsanta.wession.message.CreateMessage;
 import com.wowsanta.wession.message.DeleteMessage;
-import com.wowsanta.wession.message.RegisterRequestMessage;
-import com.wowsanta.wession.message.RegisterResponseMessage;
+import com.wowsanta.wession.message.MessageType;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
-import com.wowsanta.wession.message.SyncRequestMessage;
-import com.wowsanta.wession.message.SyncResponseMessage;
 import com.wowsanta.wession.message.UpdateMessage;
 import com.wowsanta.wession.repository.RespositoryException;
 import com.wowsanta.wession.session.Wession;
 import com.wowsanta.wession.session.WessionRepository;
 
 import lombok.Data;
-import lombok.ToString;
 
 @Data
-@ToString(exclude= {"objectPool"})
-public class ClusterNode implements WessionRepository<Wession>, Serializable{
+public class ClusterNode implements Runnable, WessionRepository<Wession>, Serializable {
 	transient private static final long serialVersionUID = -4821092090124481068L;
-	
+
 	String name;
 	String address;
 	int port;
-    
-    int maxIdle = 10;
-    int minIdle = 2;
-    boolean testWhileIdle = true;
-    boolean testOnCreate  = true;
-    boolean active 		  = false;
-    
-    transient int size;
-    transient GenericObjectPool<NioClient> objectPool ;
-	public void initialize() {
-	    objectPool =  new GenericObjectPool<NioClient>(new ClusterClientPool(address, port));
-	    objectPool.setMaxIdle(maxIdle);
-	    objectPool.setMinIdle(minIdle);
-	    objectPool.setTestWhileIdle(testWhileIdle);
-	    objectPool.setTestOnCreate(testOnCreate);
 
-	    LOG.system().info("Cluster Node Initialized : {} ", this);
+	boolean initialized = false;
+	boolean actived = false;
+	boolean started = false;
+	int coreSize = 0;
+
+	transient BlockingQueue<ClusterMessage> nodeQueue = new ArrayBlockingQueue<ClusterMessage>(2048);
+	transient ExecutorService nodeService = null;
+	transient GenericObjectPool<NioClient> objectPool ;
+	
+	public boolean initialize() {
+		if (!initialized) {
+			try {
+				coreSize = Runtime.getRuntime().availableProcessors();
+				
+				objectPool = new GenericObjectPool<NioClient>(new ClusterClientPool(address, port));
+			    objectPool.setMaxIdle(coreSize*2);
+			    objectPool.setMinIdle(1);
+			    objectPool.setTestWhileIdle(true);
+			    objectPool.setTestOnBorrow(true);
+			    objectPool.setTestOnCreate(true);
+			    
+			    nodeService = Executors.newSingleThreadExecutor();
+			    
+				initialized = true;
+			} catch (Exception e) {
+				LOG.system().warn("{}", e.getMessage(), e);
+			} finally {
+				LOG.system().info("Cluster Node Initialized - {} {}:{} / {}", this.name, this.address, this.port, this.coreSize);
+			}
+		}
+
+		return initialized;
 	}
-	@Override
-	public void create(Wession session) throws RespositoryException {
-		LOG.process().debug("create.cluster.{} : {} ",this.name,session.getKey());
-		NioClient client = null;
-		try {
-			client = objectPool.borrowObject();	
-			client.write(new CreateMessage(session));
+	
+	public synchronized boolean isActived() {
+		return this.actived;
+	}
+
+	public synchronized void setActived(boolean active) {
+		this.actived = active;
+	}
+
+	public boolean wakeup() {
+		setActived(initialize());
+		return isActived();
+	}
+	
+	public void start() {
+		if (!this.started) {
+			//.newFixedThreadPool(coreSize);
+			nodeService.execute(this);
+			
+			//for (int i = 0; i < coreSize; i++) {
+				
+			//}
+		}
+		LOG.system().info("{}/{}-{} : {} ", this.name ,this.actived,this.started, this.coreSize);
+	}
+
+	public void stop() throws IOException {
+		if (this.started) {
+			this.actived = false;
+			nodeService.shutdownNow();
+		}
+		LOG.system().info("{} / {}", this.name, nodeQueue.size());
+	}
+
+	public void run() {
+		try (ClusterClient client = new ClusterClient(this.address,this.port)){
+			started = client.connect();
+			while (actived && started) {
+				ClusterMessage message = nodeQueue.take();
+				client.write(message);
+				
+//				ClusterClient client = null;
+//				try {
+//					client = (ClusterClient) objectPool.borrowObject(1000);
+//					client.write(message);
+//				}finally {
+//					if(client != null && client.isOpen()) {
+//						objectPool.returnObject(client);
+//					}
+//				}
+			}
 		} catch (Exception e) {
-			throw new RespositoryException(e.getMessage(),e);
-		}finally {
-			objectPool.returnObject(client);
+			LOG.system().warn(e.getMessage());
+		} finally {
+			this.actived = this.started = false;
+			//this.nodeService.shutdownNow();
+			LOG.system().info("{} - finish {} ", this.name, this.nodeQueue.size());
 		}
 	}
+
+	@Override
+	public void create(Wession session) throws RespositoryException {
+		LOG.process().debug("create.cluster.{} : {} ", this.name, session.getKey());
+		try {
+			actived = nodeQueue.offer(new CreateMessage(session), 1000, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			LOG.system().error(e.getMessage(), e);
+		}
+	}
+
 	@Override
 	public Wession read(String key) throws RespositoryException {
 		return null;
 	}
-	@Override
-	public void update(Wession s) throws RespositoryException {
-		LOG.process().debug("update.cluster.{} : {} ",this.name,s.getKey());
-		NioClient client = null;
-		try {
-			client = objectPool.borrowObject();	
-			client.write(new UpdateMessage(s));
-		} catch (Exception e) {
-			throw new RespositoryException(e.getMessage(),e);
-		}finally {
-			objectPool.returnObject(client);
-		}
-		
-	}
-	@Override
-	public void delete(Wession s) throws RespositoryException {
-		NioClient client = null;
-		try {
-			client = objectPool.borrowObject();	
-			client.write(new DeleteMessage(s));
-			
-			LOG.process().debug("delete.cluster.{} : {} ",this.name,s.getKey());
-		} catch (Exception e) {
-			throw new RespositoryException(e.getMessage(),e);
-		}finally {
-			objectPool.returnObject(client);
-		}
-	}
-	public RegisterResponseMessage register(ClusterNode reg_node) throws RespositoryException {
-		try {
 
-			final ClusterNode this_node = this;
-			Future<RegisterResponseMessage> future = Executors.newSingleThreadExecutor().submit(new Callable<RegisterResponseMessage>() {
-				@Override
-				public RegisterResponseMessage call() throws Exception {
-					NioClient client = null;
-					try {
-						LOG.system().info("cluseter.node.regiester : {} / {}", this_node, reg_node.getName());
-						client = objectPool.borrowObject();
-						if(client != null) {
-							RegisterRequestMessage request_message = new RegisterRequestMessage();
-							request_message.setNode(reg_node);
-							return client.send(request_message,RegisterResponseMessage.class);	
-						}else {
-							return new RegisterResponseMessage();
-						}
-						
-					} catch (Exception e) {
-						LOG.system().info("Register failed : {} / {}", this_node.getName(), reg_node);
-						throw new RespositoryException(e.getMessage(),e);
-					}finally {
-						objectPool.returnObject(client);
-					}
-				}
-			});
-			
-			try {
-				return future.get(3,TimeUnit.SECONDS);
-			} catch (InterruptedException | ExecutionException e) {
-				throw new RespositoryException(e.getMessage(), e);
-			} catch (TimeoutException e) {
-				LOG.system().info("Register failed : {} / {}", this_node.getName(), reg_node);
-				return null;
-			}
-			
-		} catch (Exception e) {
-			LOG.system().error(e.getMessage());
-			throw new RespositoryException(e.getMessage(), e);
+	@Override
+	public void update(Wession session) throws RespositoryException {
+		LOG.process().debug("update.cluster.{} : {} ", this.name, session.getKey());
+		try {
+			actived = nodeQueue.offer(new UpdateMessage(session), 1000, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			LOG.system().error(e.getMessage(), e);
 		}
 	}
-	
+
+	@Override
+	public void delete(Wession session) throws RespositoryException {
+		LOG.process().debug("delete.cluster.{} : {} ", this.name, session.getKey());
+		try {
+			actived = nodeQueue.offer(new DeleteMessage(session), 1000, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			LOG.system().error(e.getMessage(), e);
+		}
+	}
+
+	public ClusterPingResponseMessage ping(ClusterNode reg_node) throws RespositoryException {
+		ClusterPingResponseMessage response_message = null;
+
+		String message = null;
+		try (NioClient client = new ClusterClient(this.address, this.port)) {
+			client.connect();
+
+			ClusterPingRequestMessage request_message = new ClusterPingRequestMessage();
+			request_message.setNode(reg_node);
+			response_message = client.send(request_message, ClusterPingResponseMessage.class);
+
+			message = MessageType.PING.toString();
+
+		} catch (Exception e) {
+			message = e.getMessage();			
+		} finally {
+			LOG.system().debug("cluseter.node : {} -> {} : {}", reg_node.getName(), this.getName(), message);
+		}
+
+		return response_message;
+	}
+
+	public ClusterSyncResponseMessage sync(ClusterNode sync_node) throws RespositoryException {
+		ClusterSyncResponseMessage response_message = null;
+
+		String message = null;
+		try (NioClient client = new ClusterClient(this.address, this.port)) {
+			client.connect();
+
+			ClusterSyncRequestMessage request_message = new ClusterSyncRequestMessage();
+			request_message.setNode(sync_node);
+			response_message = client.send(request_message, ClusterSyncResponseMessage.class);
+
+			message = MessageType.SYNC.toString();
+
+		} catch (Exception e) {
+			message = e.getMessage();
+		} finally {
+			LOG.system().debug("cluseter.node : {} -> {} : {}", sync_node.getName(), this.getName(), message);
+		}
+
+		return response_message;
+	}
+
+	public ClusterAckResponseMessage ack(ClusterNode ack_node) throws RespositoryException {
+		ClusterAckResponseMessage response_message = null;
+
+		String message = null;
+		try (NioClient client = new ClusterClient(this.address, this.port)) {
+			client.connect();
+
+			ClusterAckRequestMessage request_message = new ClusterAckRequestMessage();
+			request_message.setNode(ack_node);
+			response_message = client.send(request_message, ClusterAckResponseMessage.class);
+
+			message = MessageType.ACK.toString();
+		} catch (Exception e) {
+			message = e.getMessage();
+		} finally {
+			LOG.system().debug("cluseter.node : {} -> {} : {}", ack_node.getName(), this.getName(), message);
+		}
+
+		return response_message;
+	}
+
 	@Override
 	public int size() {
-		return size;
+		return 0;
 	}
+
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage r) throws RespositoryException {
 		return null;
 	}
-	public void close() {
-		this.objectPool.close();
-	}
-	public void sync(Wession session) throws RespositoryException {
-		NioClient client = null;
-		try {
-			client = objectPool.borrowObject();	
-			client.write(new CreateMessage(session));
-		} catch (Exception e) {
-			throw new RespositoryException(e.getMessage(),e);
-		}finally {
-			objectPool.returnObject(client);
-			LOG.process().debug("sync.cluster.{} : {} ",this.name,session.getKey());
-		}
-	}
-	public SyncResponseMessage syncNode(ClusterNode sync_node) throws RespositoryException{
-		NioClient client = null;
-		try {
-			LOG.system().info("cluseter.node.sync : {} / {}", this.getName(),sync_node.getName() );
-			client = objectPool.borrowObject();
-			if(client != null) {
-				SyncRequestMessage request_message = new SyncRequestMessage();
-				request_message.setNode(sync_node);
-				return client.send(request_message,SyncResponseMessage.class);	
-			}else {
-				return new SyncResponseMessage();
-			}
-			
-		} catch (Exception e) {
-			LOG.system().info("Sync failed : {} / {}", this.getName(), sync_node);
-			throw new RespositoryException(e.getMessage(),e);
-		}finally {
-			objectPool.returnObject(client);
-		}
-	}
-
 
 }

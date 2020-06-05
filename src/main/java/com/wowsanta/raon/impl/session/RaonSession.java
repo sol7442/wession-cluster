@@ -12,8 +12,10 @@ public class RaonSession implements Wession {
 	private static final long serialVersionUID = -6949212685743717047L;
 	String key;
 	String userId;
+	byte[] index;   
 	String random;
 	String token;
+	int    option;
 	Date   createTime;
 	Date   modifyTime;
 	Properties attributes = new Properties();

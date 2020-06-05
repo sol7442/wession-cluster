@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
+import com.wowsanta.logger.LOG;
 
 public class JsonConfiguration {
 	public static transient GsonBuilder builder = new GsonBuilder();
@@ -46,7 +47,7 @@ public class JsonConfiguration {
 				e.printStackTrace();
 			}
 		}else {
-			System.err.println("---");
+			LOG.system().error("FILE NOT FOUND : ",file_name);
 		}
 		return config;
 	}

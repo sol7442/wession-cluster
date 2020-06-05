@@ -4,9 +4,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.wowsanta.logger.LOG;
+import com.wowsanta.server.ServerException;
 import com.wowsanta.wession.cluster.ClusterRepository;
 import com.wowsanta.wession.core.CoreRepository;
 import com.wowsanta.wession.index.IndexRepository;
+import com.wowsanta.wession.manager.ClusterManager;
+import com.wowsanta.wession.manager.SyncManager;
 import com.wowsanta.wession.message.SearchRequestMessage;
 import com.wowsanta.wession.message.SearchResponseMessage;
 import com.wowsanta.wession.repository.RespositoryException;
@@ -30,27 +33,32 @@ public class WessionCluster implements WessionRepository<Wession> {
 		return instance;
 	}
 	
-	
 	public void setCoreRepository(CoreRepository coreRepository) {
-		LOG.system().info("{}", coreRepository);
-		if(coreRepository.initialize()) {
-			this.coreRepository = coreRepository;
-			this.repositoris.add(coreRepository);	
-		}
+		this.coreRepository = coreRepository;
+		this.repositoris.add(coreRepository);	
 	}
 	public void setIndexRepository(IndexRepository indexRepository) {
-		LOG.system().info("{}", indexRepository);
-		if(indexRepository.initialize()) {
-			this.indexRepository = indexRepository;
-			this.repositoris.add(indexRepository);	
-		}
+		this.indexRepository = indexRepository;
+		this.repositoris.add(indexRepository);	
 	}
 	public void setClusterRepository(ClusterRepository clusterRepository) {
-		LOG.system().info("{}", clusterRepository);
-		if(clusterRepository.initialize()) {
-			this.clusterRepository = clusterRepository;
-			this.repositoris.add(clusterRepository);	
-		}		
+		this.clusterRepository = clusterRepository;
+		this.repositoris.add(clusterRepository);	
+	}
+	
+	public boolean initialize() {
+		boolean result = false;
+		try {
+			for (WessionRepository<Wession> repository : repositoris) {
+				result = repository.initialize();
+			}
+			result = SyncManager.getInstance().initialize();
+		}catch (Exception e) {
+			LOG.system().error(e.getMessage(), e);
+		}finally {
+				
+		}
+		return result;
 	}
 	
 	@Override
@@ -117,9 +125,10 @@ public class WessionCluster implements WessionRepository<Wession> {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
-		SearchResponseMessage response = null;
+		SearchResponseMessage<Wession> response = null;
 		try {
 			if(isIndexSearch(request.getFilter())) {
 				response = indexRepository.search(request);
@@ -129,7 +138,7 @@ public class WessionCluster implements WessionRepository<Wession> {
 		}catch (RespositoryException e) {
 			throw e;
 		}finally {
-			LOG.process().debug("{} / {}",request, response);		
+			LOG.process().debug("{} : {}/{}",request,  response.getResources().size(), response.getTotalResults());		
 		}
 		return response;
 	}
@@ -145,5 +154,19 @@ public class WessionCluster implements WessionRepository<Wession> {
 		else
 			return true;
 	}
+
+	public void stop() {
+		ClusterManager.getInstance().stop();
+	}
+
+	public void start() throws ServerException {
+		ClusterManager.getInstance().start();
+	}
+
+
+
+
+
+	
 
 }

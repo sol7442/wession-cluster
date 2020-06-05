@@ -1,7 +1,10 @@
 package com.wowsanta.wession.manager;
 
+import java.util.Collection;
+
 import com.wowsanta.logger.LOG;
 import com.wowsanta.wession.core.CoreRepository;
+import com.wowsanta.wession.session.Wession;
 
 public class CoreManager extends CoreRepository {
 	private static CoreManager instance = null;
@@ -16,12 +19,17 @@ public class CoreManager extends CoreRepository {
 	}
 	
 	public boolean initialize() {
-		if(initialized == false) {
+		try {
 			initialized = super.initialize();
+		} catch (Exception e) {
+			LOG.system().error(e.getMessage(), e);
+		}finally {
+			LOG.system().info("initialized : {}-{} ", this.getClass().getName(), initialized);
 		}
-		LOG.system().info("CoreManager : {} ", initialized);
 		return initialized;
 	}
 
-	
+	public Collection<Wession> values() {
+		return core.values();
+	}	
 }

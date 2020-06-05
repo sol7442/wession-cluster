@@ -3,8 +3,8 @@ package com.wowsanta.raon.impl.message;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.wowsanta.raon.impl.data.INDEX;
 import com.wowsanta.raon.impl.data.CMD;
-import com.wowsanta.raon.impl.data.INT;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.raon.impl.data.STR;
 import com.wowsanta.raon.impl.session.RaonCommand;
@@ -14,13 +14,13 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class HellowRequestMessage extends RaonSessionMessage {
-	private static final long serialVersionUID = 1167294168944095649L;
+public class DeleteRequestMessage extends RaonSessionMessage {
+	private static final long serialVersionUID = RaonCommand.CMD_PS_DELSESSION.getValue();
 	
-	CMD  command = new CMD(RaonCommand.CMD_HELLO.getValue());
-	INT byteOrder;
-	INT productNum;
-	STR version;
+	CMD command = new CMD(RaonCommand.CMD_PS_DELSESSION.getValue());
+	INDEX sessionIndex;
+	STR userId;
+	
 	
 	@Override
 	public byte[] toBytes() throws IOException {
@@ -29,9 +29,8 @@ public class HellowRequestMessage extends RaonSessionMessage {
 
 	@Override
 	public void parse(ByteBuffer buffer) throws IOException {
-		byteOrder 	= readInt(buffer);
-		productNum 	= readInt(buffer);
-		version    	= readStr(buffer);
+		sessionIndex 	= readByte4(buffer);
+		userId  = readStr(buffer);
 	}
 
 	@Override

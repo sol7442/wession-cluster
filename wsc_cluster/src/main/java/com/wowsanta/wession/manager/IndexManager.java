@@ -1,5 +1,6 @@
 package com.wowsanta.wession.manager;
 
+import com.wowsanta.logger.LOG;
 import com.wowsanta.wession.index.IndexRepository;
 
 public class IndexManager extends IndexRepository {
@@ -17,4 +18,18 @@ public class IndexManager extends IndexRepository {
 			instance = indexManager;
 		}
 	}
+	
+	public boolean initialize() {
+		boolean initialized = false;
+		try {
+			initialized = super.initialize();
+		} catch (Exception e) {
+			LOG.system().error(e.getMessage(), e);
+		}finally {
+			LOG.system().info("initialized : {}-{} ", this.getClass().getName(), initialized);
+		}
+		return initialized; 
+	}
+
+
 }

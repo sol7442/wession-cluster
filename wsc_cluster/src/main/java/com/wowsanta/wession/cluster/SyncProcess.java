@@ -1,44 +1,50 @@
 package com.wowsanta.wession.cluster;
 
+
 import com.wowsanta.logger.LOG;
 import com.wowsanta.server.ServerException;
-import com.wowsanta.wession.WessionCluster;
+import com.wowsanta.wession.manager.ClusterManager;
+import com.wowsanta.wession.manager.CoreManager;
 import com.wowsanta.wession.manager.SyncManager;
-import com.wowsanta.wession.message.RegisterRequestMessage;
-import com.wowsanta.wession.message.RegisterResponseMessage;
-import com.wowsanta.wession.message.SyncRequestMessage;
-import com.wowsanta.wession.message.SyncResponseMessage;
+import com.wowsanta.wession.message.ClusterSyncRequestMessage;
+import com.wowsanta.wession.message.ClusterSyncResponseMessage;
 
 public class SyncProcess extends AbstractClusterProcess {
 
 	public SyncProcess(ClusterMessage message) {
 		setRequest (new ClusterRequest(message));
-		setResponse(new ClusterResponse(new SyncResponseMessage()));
+		setResponse(new ClusterResponse(new ClusterSyncResponseMessage()));
 	}
 
 	@Override
 	public void porcess() throws ServerException{
-		SyncRequestMessage  request_messge   = null;
-		SyncResponseMessage response_message = null;
+		ClusterSyncRequestMessage  request_messge   = null;
+		ClusterSyncResponseMessage response_message = null;
+		
 		try {
-			request_messge   = (SyncRequestMessage) request.getMessage();
-			response_message = (SyncResponseMessage) response.getMessage();
-			LOG.application().info("request : {} ",request_messge);
+			long start_time = System.currentTimeMillis();
+			request_messge   = (ClusterSyncRequestMessage) request.getMessage();
+			response_message = (ClusterSyncResponseMessage) response.getMessage();
 			
-			int current_size = WessionCluster.getInstance().size();
-			ClusterNode cluster_node = request_messge.getNode();
+			ClusterNode sync_node = request_messge.getNode();
+			LOG.application().debug("{} ",sync_node);
 			
-			SyncManager.getInstance().syncNode(cluster_node);
 			
-			LOG.application().debug("node : {} / {}",cluster_node, current_size);
-			response_message.setSize(current_size);			
-			LOG.application().info("response : {} ",response_message);
+			ClusterNode cluster_node = ClusterManager.getInstance().getClusterNode(sync_node.getName());		
+			int sync_size = SyncManager.getInstance().sync(cluster_node);
+			
+			long end_time = System.currentTimeMillis();
+			response_message.setNode(ClusterManager.getInstance().getThisNode());
+			response_message.setTotalSize(CoreManager.getInstance().size());
+			response_message.setSyncTime(end_time - start_time);
+			response_message.setSyncSize(sync_size);
 			
 		}catch (Exception e) {
-			LOG.application().error(e.getMessage(), e);
 			throw new ServerException(e.getMessage(),e);
 		}finally {
 			
+			LOG.application().info("request  : {} ",request_messge);
+			LOG.application().info("response : {} ",response_message);
 		}
 	}
 }

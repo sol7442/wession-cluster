@@ -16,10 +16,10 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class RegisterResonseMessage extends RaonSessionMessage {
-	private static final long serialVersionUID = 1167294168944095649L;
+	private static final long serialVersionUID = -RaonCommand.CMD_PS_REGISTER.getValue();
 	
 	CMD command   = new CMD(RaonCommand.CMD_PS_REGISTER.getValue());
-	INT lot;
+	INT createTime;
 	INDEX sessionIndex;
 	RSTRS data;
 	
@@ -35,11 +35,11 @@ public class RegisterResonseMessage extends RaonSessionMessage {
 	
 	@Override
 	public void flush() throws IOException{
-		int total_size = command.getSize() + lot.getSize() + sessionIndex.getSize() + data.getSize();
+		int total_size = command.getSize() + createTime.getSize() + sessionIndex.getSize() + data.getSize();
 		ByteBuffer buffer = ByteBuffer.allocate(total_size);
 		
 		buffer.put(command.toBytes());
-		buffer.put(lot.toBytes());
+		buffer.put(createTime.toBytes());
 		buffer.put(sessionIndex.toBytes());
 		buffer.put(data.toBytes());
 		

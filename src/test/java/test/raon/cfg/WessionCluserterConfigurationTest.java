@@ -3,6 +3,7 @@ package test.raon.cfg;
 import org.junit.Test;
 
 import com.wowsanta.wession.cluster.ClusterServiceDispathcer;
+import com.wowsanta.raon.impl.policy.RaonSessionPolicy;
 import com.wowsanta.raon.impl.session.RaonSession;
 import com.wowsanta.server.nio.NioServer;
 import com.wowsanta.wession.cluster.ClusterConnectionFactory;
@@ -14,6 +15,7 @@ import com.wowsanta.wession.impl.server.RaonSessionServiceDispatcher;
 import com.wowsanta.wession.manager.ClusterManager;
 import com.wowsanta.wession.manager.CoreManager;
 import com.wowsanta.wession.manager.IndexManager;
+import com.wowsanta.wession.manager.PolicyManager;
 
 public class WessionCluserterConfigurationTest {
 	
@@ -24,6 +26,14 @@ public class WessionCluserterConfigurationTest {
 		WessionLancher w = WessionLancher.load(file_name);
 		System.out.println(w.toString(true));
 
+		String policy_file = "./config/raon_policy.json";
+		RaonSessionPolicy policy = new RaonSessionPolicy();
+		policy.save(policy_file);
+		
+		PolicyManager.getInstance().setPolicyClass(RaonSessionPolicy.class.getName());
+		PolicyManager.getInstance().setPolicyFile(policy_file);;
+		
+		w.setPolicyManager(PolicyManager.getInstance());
 		
 		w.save(file_name);
 		System.out.println(w.toString(true));
@@ -62,9 +72,9 @@ public class WessionCluserterConfigurationTest {
 		node1.setName("dev_02");
 		node1.setAddress("127.0.0.1");
 		node1.setPort(6060);
-		node1.setMaxIdle(5);
-		node1.setMinIdle(2);
-		node1.setTestWhileIdle(false);
+//		node1.setMaxIdle(5);
+//		node1.setMinIdle(2);
+//		node1.setTestWhileIdle(false);
 		
 		cluseter_manager.setClusterNode(node1);
 		

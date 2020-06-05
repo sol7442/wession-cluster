@@ -16,7 +16,7 @@ public class ClusterClient extends NioClient {
 	
 	@Override
 	public void write(Message message) throws IOException {
-		
+		int size = 0;
 		try {
 			byte[] array_data = ObjectBuffer.toByteArray(message);
 			ByteBuffer buffer = ByteBuffer.allocate(array_data.length + 4);
@@ -24,14 +24,12 @@ public class ClusterClient extends NioClient {
 			buffer.put(array_data);
 			buffer.flip();
 			
-			int size = socketChannel.write(buffer);
-
-			LOG.application().debug("{} : {} / {} ", this, array_data.length,size);
+			size = socketChannel.write(buffer);
 		}catch (Exception e) {
 			LOG.application().error(e.getMessage());
 			throw e;
 		}finally {
-			
+			LOG.application().debug("{} : {} ", this, size);
 		}
 	}
 	

@@ -23,8 +23,6 @@ public class ClusterNodeTest {
 		node.setAddress(ip);
 		node.setPort(port);
 		
-		node.setMinIdle(3);
-		node.setMaxIdle(5);
 		
 		node.initialize();
 		try {
@@ -48,7 +46,6 @@ public class ClusterNodeTest {
 		}catch (Exception e) {
 			e.printStackTrace();
 		}finally {
-			node.close();
 		}
 	}
 	

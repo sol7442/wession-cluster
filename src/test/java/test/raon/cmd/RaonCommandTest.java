@@ -34,9 +34,19 @@ public class RaonCommandTest {
 		
 		System.out.println("CMD_PS_SESSIONVALID : " + ByteBuffer.wrap(SessionServerCommand.CMD_PS_SESSIONVALID).getInt());
 		System.out.println("CMD_PS_GETTOKENOTP : " + ByteBuffer.wrap(SessionServerCommand.CMD_PS_GETTOKENOTP).getInt());
+		
+		System.out.println("CMD_WRM_ACCOUNTS : " + ByteBuffer.wrap(SessionServerCommand.CMD_WRM_ACCOUNTS).getInt());
+		System.out.println("CMD_WRM_DELACCOUNTS : " + ByteBuffer.wrap(SessionServerCommand.CMD_WRM_DELACCOUNTS).getInt());
+		System.out.println("CMD_WRM_SESSION : " + ByteBuffer.wrap(SessionServerCommand.CMD_WRM_SESSION).getInt());
+		System.out.println("CMD_WRM_DELSESSION : " + ByteBuffer.wrap(SessionServerCommand.CMD_WRM_DELSESSION).getInt());
+		
+//		public static final byte[]	CMD_WRM_ACCOUNTS	 = {0x0, 0x0, 0x2, 0x0};
+//		public static final byte[]	CMD_WRM_DELACCOUNTS	 = {0x0, 0x0, 0x2, 0x10};
+//		public static final byte[]	CMD_WRM_SESSION	 	 = {0x0, 0x0, 0x3, 0x0};
+//		public static final byte[]	CMD_WRM_DELSESSION	 = {0x0, 0x0, 0x3, 0x10};
 	}
 	
-	@Test
+	//@Test
 	public void command_switch_test() {
 		RaonCommand command = RaonCommand.valueOf("CMD_HELLO");// command = ByteBuffer.wrap(SessionServerCommand.CMD_HELLO).getInt();
 		

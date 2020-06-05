@@ -32,6 +32,10 @@ public class INT extends DATA {
 				(((int)bytes[idx + 3] & 0xff));
 	}
 
+	public INT(long time) {
+		this((int)time);
+	}
+
 	public int getValue() {
 		return this.value;
 	}

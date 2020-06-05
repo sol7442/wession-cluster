@@ -30,20 +30,19 @@
       "connectionFactoryClass": "com.wowsanta.wession.cluster.ClusterConnectionFactory",
       "serviceDispatcherClass": "com.wowsanta.wession.cluster.ClusterServiceDispathcer"
     },
-    "nodeName": "dev_01",
     "nodeMap": {
       "dev_02": {
         "name": "dev_02",
         "address": "127.0.0.1",
         "port": 6061,
-        "maxIdle": 5,
-        "minIdle": 2,
-        "testWhileIdle": false,
-        "testOnCreate": true,
-        "active": false
+        "initialized": false,
+        "actived": false,
+        "started": false,
+        "coreSize": 0
       }
     },
-    "threadCount": 0
+    "threadCount": 0,
+    "nodeName": "dev_01"
   },
   "indexManager": {
     "keyList": [
@@ -51,5 +50,9 @@
     ],
     "wessionClassName": "com.wowsanta.raon.impl.session.RaonSession",
     "threadCount": 0
+  },
+  "policyManager": {
+    "policyFile": "./config/raon_policy.json",
+    "policyClass": "com.wowsanta.raon.impl.policy.RaonSessionPolicy"
   }
 }

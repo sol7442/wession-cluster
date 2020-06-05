@@ -5,15 +5,18 @@ import java.nio.ByteBuffer;
 
 import com.wowsanta.logger.LOG;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
-import com.wowsanta.raon.impl.message.HellowRequestMessage;
+import com.wowsanta.raon.impl.message.AccountListRequestMessage;
+import com.wowsanta.raon.impl.message.HelloRequestMessage;
 import com.wowsanta.raon.impl.message.RegisterRequestMessage;
 import com.wowsanta.raon.impl.message.TokenOtpGetRequestMessage;
 import com.wowsanta.raon.impl.message.UnregisterRequestMessage;
 import com.wowsanta.raon.impl.message.UserDataAddRequestMessage;
 import com.wowsanta.raon.impl.message.UserDataDelRequestMessage;
 import com.wowsanta.raon.impl.message.UserDataGetRequestMessage;
+import com.wowsanta.raon.impl.message.UserDataModRequestMessage;
 import com.wowsanta.raon.impl.message.VaildateRequestMessage;
 import com.wowsanta.raon.impl.proc.AbstractSessionProcess;
+import com.wowsanta.raon.impl.proc.AccountListProcess;
 import com.wowsanta.raon.impl.proc.HelloProcess;
 import com.wowsanta.raon.impl.proc.RegisterProcess;
 import com.wowsanta.raon.impl.proc.TokenOtpGetProcess;
@@ -21,11 +24,12 @@ import com.wowsanta.raon.impl.proc.UnregisterProcess;
 import com.wowsanta.raon.impl.proc.UserDataAddProcess;
 import com.wowsanta.raon.impl.proc.UserDataDelProcess;
 import com.wowsanta.raon.impl.proc.UserDataGetProcess;
+import com.wowsanta.raon.impl.proc.UserDataModProcess;
 import com.wowsanta.raon.impl.proc.VaildateProcess;
+import com.wowsanta.raon.impl.session.RaonCommand;
 import com.wowsanta.server.ServerException;
 import com.wowsanta.server.ServiceProcess;
 import com.wowsanta.server.nio.NioConnection;
-import com.wowsanta.util.Hex;
 
 public class RaonSessionConnection extends NioConnection {
 
@@ -79,35 +83,58 @@ public class RaonSessionConnection extends NioConnection {
 		
 		AbstractSessionProcess process = null;
 				
-		int command = buffer.getInt();
-		LOG.application().debug("command : {} ", Hex.toHexString(command));
+		RaonCommand command = RaonCommand.valueOf(buffer.getInt());
+		LOG.application().debug("{} : {}={} ",command, command.getValue(), command.getHexStr());
 		
 		switch (command) {
-		case 1:
-			process = new HelloProcess(new HellowRequestMessage());
+		case CMD_HELLO:
+			process = new HelloProcess();
 			break;
-		case 66304:
-			process = new UnregisterProcess(new UnregisterRequestMessage());
+			
+		case CMD_PS_ADDUSERDATA:
+			process = new UserDataAddProcess();
 			break;
-		case 67072:
-			process = new RegisterProcess(new RegisterRequestMessage());
+		case CMD_PS_UPDUSERDATA:
+			process = new UserDataModProcess();
 			break;
-		case 68096:
-			process = new VaildateProcess(new VaildateRequestMessage());
+		case CMD_PS_DELUSERDATA:
+			process = new UserDataDelProcess();
 			break;
-		case 65792:
-			process = new UserDataAddProcess(new UserDataAddRequestMessage());
+		case CMD_PS_GETUSERDATA:
+			process = new UserDataGetProcess();
 			break;
-		case 65795:
-			process = new UserDataGetProcess(new UserDataGetRequestMessage());
+			
+		case CMD_PS_DELACCOUNT:
+			process = null;
 			break;
-		case 65794:
-			process = new UserDataDelProcess(new UserDataDelRequestMessage());
+		case CMD_PS_DELSESSION:
+			process = new UnregisterProcess();
 			break;
-		case 68097:
-			process = new TokenOtpGetProcess(new TokenOtpGetRequestMessage());
+		case CMD_PS_REGISTER:
+			process = new RegisterProcess();
 			break;
+		case CMD_PS_SESSIONVALID:
+			process = new VaildateProcess();
+			break;
+		case CMD_PS_GETTOKENOTP:
+			process = new TokenOtpGetProcess();
+			break;
+			
+		case CMD_WRM_ACCOUNTS:
+			process = new AccountListProcess();
+			break;
+		case CMD_WRM_DELACCOUNTS:
+			process = null;
+			break;
+		case CMD_WRM_SESSION:
+			process = null;
+			break;
+		case CMD_WRM_DELSESSION:
+			process = null;
+			break;
+			
 		default:
+			process = null;
 			break;
 		}
 		 
@@ -116,7 +143,6 @@ public class RaonSessionConnection extends NioConnection {
 		}
 		
 		process.setConnection(this);
-		
 		try {
 			RaonSessionMessage message = (RaonSessionMessage) process.getRequest().getMessage();
 			message.parse(buffer);
@@ -144,6 +170,7 @@ public class RaonSessionConnection extends NioConnection {
 	@Override
 	public void write(byte[] data) throws ServerException {
 		try {
+			this.writeBuffer = ByteBuffer.allocate(data.length);
 			this.writeBuffer.put(data);
 		}catch (Exception e) {
 			LOG.application().error(e.getMessage(),e);

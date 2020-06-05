@@ -15,7 +15,7 @@ import com.wowsanta.wession.session.WessionRepository;
 public class CoreRepository implements WessionRepository<Wession> {
 
 	int capacity;
-	transient ConcurrentMap<String,Wession> core = new ConcurrentHashMap<>();
+	transient protected ConcurrentMap<String,Wession> core = new ConcurrentHashMap<>();
 	
 	public boolean initialize() {
 		if(capacity == 0) {
@@ -41,7 +41,7 @@ public class CoreRepository implements WessionRepository<Wession> {
 		}catch (Exception e) {
 			throw e;
 		}finally {
-			LOG.process().info("create.core : {} / {}", session.getKey(), core.size());
+			LOG.process().debug("create.core : {} / {}", session.getKey(), core.size());
 		}
 	}
 
@@ -54,12 +54,12 @@ public class CoreRepository implements WessionRepository<Wession> {
 	@Override
 	public void update(Wession session) throws RespositoryException {
 		core.put(session.getKey(),session);
-		LOG.process().info("core.update : {} ", session.getKey());
+		LOG.process().debug("core.update : {} ", session.getKey());
 	}
 
 	@Override
 	public void delete(Wession session) throws RespositoryException {
-		LOG.process().info("core.delete : {} ", session.getKey());
+		LOG.process().debug("core.delete : {} ", session.getKey());
 		core.remove(session.getKey());		
 	}
 
@@ -68,8 +68,8 @@ public class CoreRepository implements WessionRepository<Wession> {
 	}
 	
 	@Override
-	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
-		SearchResponseMessage response = new SearchResponseMessage();
+	public SearchResponseMessage<Wession> search(SearchRequestMessage request)throws RespositoryException{
+		SearchResponseMessage<Wession> response = new SearchResponseMessage<Wession>();
 		
 		List<Wession> core_list = new ArrayList<Wession>(core.values());
 		List<Wession> result_list = new ArrayList<Wession>();

@@ -1,0 +1,5 @@
+{
+  "maxAccount": 1000,
+  "maxSession": 5,
+  "maxInactiveInterval": 1
+}

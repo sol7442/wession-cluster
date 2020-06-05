@@ -101,5 +101,9 @@
     ],
     "wessionClassName": "com.wowsanta.raon.impl.session.RaonSession",
     "threadCount": 0
+  },
+  "policyManager": {
+    "policyFile": "./config/raon_policy.json",
+    "policyClass": "com.wowsanta.raon.impl.policy.RaonSessionPolicy"
   }
 }

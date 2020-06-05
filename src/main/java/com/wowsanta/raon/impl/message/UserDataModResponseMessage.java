@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import com.wowsanta.raon.impl.data.CMD;
 import com.wowsanta.raon.impl.data.INT;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
-import com.wowsanta.raon.impl.data.STR;
 import com.wowsanta.raon.impl.session.RaonCommand;
 
 import lombok.Data;
@@ -14,13 +13,12 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class HellowResonseMessage extends RaonSessionMessage {
-	private static final long serialVersionUID = 1167294168944095649L;
+public class UserDataModResponseMessage extends RaonSessionMessage {
+	private static final long serialVersionUID = -RaonCommand.CMD_PS_UPDUSERDATA.getValue();
 	
-	CMD command   = new CMD(RaonCommand.CMD_HELLO.getValue());
-	INT byteOrder = new INT(1);
-	INT code ;     
-	STR version = new STR("WOWSANTA WESSION - WITH WISEACCESS : b2020.04");
+	CMD command   = new CMD(RaonCommand.CMD_PS_UPDUSERDATA.getValue());
+	INT lot;
+	
 	@Override
 	public byte[] toBytes() throws IOException {
 		return this.bytes;
@@ -30,16 +28,13 @@ public class HellowResonseMessage extends RaonSessionMessage {
 	public void parse(ByteBuffer buffer) throws IOException {
 		//
 	}
-	
 	@Override
 	public void flush() throws IOException{
-		int total_size = command.getSize() + byteOrder.getSize() + code.getSize() + version.getSize();
+		int total_size = command.getSize() + lot.getSize() ;
 		ByteBuffer buffer = ByteBuffer.allocate(total_size);
 		
 		buffer.put(command.toBytes());
-		buffer.put(byteOrder.toBytes());
-		buffer.put(code.toBytes());
-		buffer.put(version.toBytes());
+		buffer.put(lot.toBytes());
 		
 		this.bytes = buffer.array();
 	}

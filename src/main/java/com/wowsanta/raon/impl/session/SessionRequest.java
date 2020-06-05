@@ -1,4 +1,4 @@
-package com.wowsanta.raon.impl.proc;
+package com.wowsanta.raon.impl.session;
 
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.server.Request;

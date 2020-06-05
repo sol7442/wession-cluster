@@ -37,7 +37,7 @@ public class IndexRepository implements WessionRepository<Wession> {
 			try {
 				wession_class = Class.forName(wessionClassName);
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
+				LOG.system().error(e.getMessage(),e);
 			}
 					
 			for (String key_name : keyList) {
@@ -46,18 +46,13 @@ public class IndexRepository implements WessionRepository<Wession> {
 					Method key_method = getKeyMethod(key_name);
 					node.setKeyName(key_name);
 					node.setKeyMethod(key_method);
-					
-					LOG.system().debug("index.node : {} ", node);
 				} catch (RespositoryException e) {
 					e.printStackTrace();
 				}
 				nodeMap.put(key_name, node);
 			}
-			
 			initialized = true;
 		}
-		
-		LOG.system().info("IndexRepository : {} ", initialized);
 		return true;
 	}
 	
@@ -80,7 +75,7 @@ public class IndexRepository implements WessionRepository<Wession> {
 	
 	@Override
 	public void create(Wession session) throws RespositoryException {
-		LOG.process().info("create.index : {} ", session.getKey());
+		LOG.process().debug("create.index : {} ", session.getKey());
 		for (String key_name : keyList) {
 			IndexNode node = nodeMap.get(key_name);
 			node.create(session);
@@ -94,16 +89,11 @@ public class IndexRepository implements WessionRepository<Wession> {
 
 	@Override
 	public void update(Wession session) throws RespositoryException {
-//		LOG.process().debug("update.index : {} ", session.getKey());
-//		for (String key_name : keyList) {
-//			IndexNode node = nodeMap.get(key_name);
-//			node.update(session);
-//		}
 	}
 
 	@Override
 	public void delete(Wession session) throws RespositoryException {
-		LOG.process().info("delete.index : {} ", session.getKey());
+		LOG.process().debug("delete.index : {} ", session.getKey());
 		for (String key_name : keyList) {
 			IndexNode node = nodeMap.get(key_name);
 			node.delete(session);
@@ -111,21 +101,39 @@ public class IndexRepository implements WessionRepository<Wession> {
 	}
 
 	@Override
-	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
-		SearchResponseMessage response = new SearchResponseMessage();
+	public SearchResponseMessage<Wession> search(SearchRequestMessage request)throws RespositoryException{
+		SearchResponseMessage<Wession> response = new SearchResponseMessage<Wession>();
 		try {
-			String filter       = request.getFilter();
-			String filter_key   = getFilterKey(filter);
-			String filter_value = getFilterValue(filter);
+
+			SingleFilter filter = new SingleFilter();
+			filter.parse(request.getFilter());
+			Method order_key = getKeyMethod(request.getOrderKey());
 			
-			LOG.process().debug("index.search : {}-{} ", filter_key, filter_value);
-			IndexNode node = nodeMap.get(filter_key);
+			LOG.process().debug("index.search.filter : {}-{} ", filter);
+			IndexNode node = nodeMap.get(filter.getKey());
 			if(node != null) {
-				List<Wession> wession_list = node.list(filter_value);
-				response.setResources(wession_list);	
+				List<Wession> wession_list = node.filter(filter,order_key);
+				int _index = request.getStartIndex();
+				int _count  = request.getCount();
+				if(_count > 0){
+					int _req_size = _index + _count;
+					int _f_index;
+					int _t_index;
+					if(_req_size >= wession_list.size()) {
+						_f_index = _index;
+						_t_index = _index + _count - 1;
+					}else {
+						_f_index = _index;
+						_t_index = wession_list.size() - 1;
+					}
+					response.setResources(wession_list.subList(_f_index, _t_index));	
+				}else {
+					response.setResources(wession_list);	
+				}
 				response.setTotalResults(wession_list.size());
+				
 			}else {
-				throw new RespositoryException("node not found : " + filter_key);
+				throw new RespositoryException("node not found : " + filter);
 			}
 			response.setResultType(ResultType.SUCCESS);
 		}catch (Exception e) {
@@ -133,17 +141,32 @@ public class IndexRepository implements WessionRepository<Wession> {
 		}
 		return response;
 	}
-	private String getFilterValue(String filter) {
-		return filter.split("=")[1];
-	}
 
-	private String getFilterKey(String filter) {
-		return filter.split("=")[0];
+	public int size(String key_name, String key_value) {
+		IndexNode node = nodeMap.get(key_name);
+		if(node != null) {
+			return node.size(key_value);
+		}
+		return 0;
 	}
-
+	public int size(String key_name) {
+		IndexNode node = nodeMap.get(key_name);
+		if(node != null) {
+			return node.size();
+		}
+		return 0;
+	}
+	
 	@Override
 	public int size() {
-		return 0;
+		int size = 0 ;
+		try {
+			IndexNode node = nodeMap.get(this.keyList.get(0));
+			size = node.totalSize();
+		}catch (Exception e) {
+			LOG.application().error(e.getMessage());
+		}
+		return size;
 	}
 	private Method getKeyMethod(String key_name) throws RespositoryException {
 		Method key_method = null;

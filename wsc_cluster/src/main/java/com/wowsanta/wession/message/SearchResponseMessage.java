@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class SearchResponseMessage extends ClusterMessage {
+public class SearchResponseMessage<T extends Wession> extends ClusterMessage {
 	private static final long serialVersionUID = -8818613579194880957L;
 
 	MessageType messageType = MessageType.SEARCH;
@@ -19,6 +19,6 @@ public class SearchResponseMessage extends ClusterMessage {
 	private int totalResults;
 	private int itemsPerPage;
 	private int startIndex;
-	private List<Wession> resources;
+	private List<T> resources;
 	
 }

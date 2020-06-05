@@ -51,9 +51,7 @@ public class ClusterConnection extends NioConnection {
 			}
 			throw new ServerException(e.getMessage(),e);
 		}finally {
-			
 			LOG.application().debug("finally : {}/{}", readBuffer  ,readBuffer.remaining());
-			
 			if(readBuffer.remaining() == 0) {
 				readBuffer.clear();
 				LOG.application().debug("clear : {}/{}", readBuffer  ,readBuffer.remaining());
@@ -81,8 +79,14 @@ public class ClusterConnection extends NioConnection {
 		case DELETE:
 			process = new DeleteProcess(message);
 			break;
+		case PING:
+			process = new PingProcess(message);
+			break;
 		case SYNC:
 			process = new SyncProcess(message);
+			break;
+		case ACK:
+			process = new AckProcess(message);
 			break;
 		default:
 			process = new ErrorProcess(message);

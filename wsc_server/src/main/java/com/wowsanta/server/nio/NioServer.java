@@ -57,7 +57,8 @@ public class NioServer extends Server implements  Runnable {
 	@Override
 	public boolean initialize() throws ServerException {
 		try {
-			LOG.system().info("initialize : {} ==================== \n{}",this.name, toString(true));
+			LOG.system().debug("NioServer : {} \n{}",this.name, toString(true));
+			
 			serverExecutor  = Executors.newSingleThreadExecutor();
 			serviceExecutor = Executors.newFixedThreadPool(threadSize);
 			rquestQueue = new ArrayBlockingQueue<ServiceProcess<?,?>>(queueSize);

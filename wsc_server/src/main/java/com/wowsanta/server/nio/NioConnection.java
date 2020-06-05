@@ -20,7 +20,7 @@ public abstract class NioConnection implements Connection{
     
     public void initialize(int bufferSize) {
     	readBuffer  = ByteBuffer.allocate(bufferSize);
-    	writeBuffer = ByteBuffer.allocate(bufferSize);
+    //	writeBuffer = ByteBuffer.allocate(bufferSize);
 		
 	}
     public int remaining() {

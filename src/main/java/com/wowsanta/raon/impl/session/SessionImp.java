@@ -1,4 +1,4 @@
-package com.wowsanta.raon.impl.proc;
+package com.wowsanta.raon.impl.session;
 
 import java.util.Random;
 

@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class RegisterRequestMessage extends RaonSessionMessage {
-	private static final long serialVersionUID = 1167294168944095649L;
+	private static final long serialVersionUID = RaonCommand.CMD_PS_REGISTER.getValue();
 	
 	CMD command = new CMD(RaonCommand.CMD_PS_REGISTER.getValue());
 	INT option;

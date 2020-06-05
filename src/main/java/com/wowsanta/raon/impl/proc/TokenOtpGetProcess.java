@@ -11,14 +11,16 @@ import com.wowsanta.raon.impl.message.TokenOtpGetRequestMessage;
 import com.wowsanta.raon.impl.message.TokenOtpGetResponseMessage;
 import com.wowsanta.raon.impl.session.RaonSession;
 import com.wowsanta.raon.impl.session.SessionKeyGenerator;
+import com.wowsanta.raon.impl.session.SessionRequest;
+import com.wowsanta.raon.impl.session.SessionResponse;
 import com.wowsanta.server.ServerException;
 import com.wowsanta.util.Hex;
 import com.wowsanta.wession.WessionCluster;
 
 
 public class TokenOtpGetProcess extends AbstractSessionProcess {
-	public TokenOtpGetProcess(RaonSessionMessage message) {
-		setRequest(new SessionRequest(message));
+	public TokenOtpGetProcess() {
+		setRequest(new SessionRequest(new TokenOtpGetRequestMessage()));
 		setResponse(new SessionResponse(new TokenOtpGetResponseMessage(), getRequest().getSession()));
 	}
 

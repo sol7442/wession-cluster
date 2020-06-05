@@ -1,5 +1,7 @@
 package com.wowsanta.raon.impl.proc;
 
+import com.wowsanta.raon.impl.session.SessionRequest;
+import com.wowsanta.raon.impl.session.SessionResponse;
 import com.wowsanta.server.Connection;
 import com.wowsanta.server.Request;
 import com.wowsanta.server.Response;

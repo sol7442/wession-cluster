@@ -2,6 +2,8 @@ package com.wowsanta.wession.index;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,11 +23,13 @@ public class IndexNode implements WessionRepository<Wession>{
 	String keyName;
 	Method keyMethod;
 	
-	//ConcurrentMap<Object,Wession> core = new ConcurrentHashMap<>();
 	private final ConcurrentMap<String, List<Wession>> cache = new ConcurrentHashMap<String, List<Wession>>();
 	private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<String, Object>();
 	
-	
+	@Override
+	public boolean initialize() {
+		return false;
+	}
 	@Override
 	public void create(Wession session) throws RespositoryException {
 		if(session == null) {
@@ -40,7 +44,7 @@ public class IndexNode implements WessionRepository<Wession>{
 			}
 			list.add(session);
 			cache.put(index_key, list);
-			LOG.process().info("create.index.{}={} : {} / {} ",keyName,index_key, session.getKey() ,list.size());
+			LOG.process().debug("create.index.{}={} : {} / {} ",keyName,index_key, session.getKey() ,list.size());
 		}
 	}
 	public List<Wession> list(String index_key) throws RespositoryException {
@@ -76,18 +80,31 @@ public class IndexNode implements WessionRepository<Wession>{
 		LOG.process().debug("delete.index.{}={} : {} ",keyName,index_key, session.getKey());
 	}
 	@Override
-	public SearchResponseMessage search(SearchRequestMessage r)throws RespositoryException{
+	public SearchResponseMessage<Wession> search(SearchRequestMessage r)throws RespositoryException{
 		// TODO Auto-generated method stub
 		return null;
 	}
-	@Override
-	public int size() {
+	
+	public int totalSize() {
 		int size = 0;
 		for (Entry<String,List<Wession>> entry : cache.entrySet()) {
 			size += entry.getValue().size();
 		}
 		return size;
 	}
+	@Override
+	public int size() {
+		return cache.size();
+	}
+	public int size(String value_key) {
+		List<Wession> list = cache.get(value_key);
+		if(list != null) {
+			return list.size();
+		}
+		return 0;
+	}
+	
+
 	
 	private String getIndexKeyValue(Wession s) throws RespositoryException{
 		String index_key = null;
@@ -106,5 +123,25 @@ public class IndexNode implements WessionRepository<Wession>{
 	      lock=object;
 	    }
 	    return lock;
+	}
+	public List<Wession> filter(SingleFilter filter, Method orderKey) {
+		List<Wession> result_list = filter.op.filter(this.cache, filter.getValue());
+		
+		Collections.sort(result_list, new Comparator<Wession>() {
+			@Override
+			public int compare(Wession o1, Wession o2) {
+				try {
+					Object value1 = orderKey.invoke(o1);
+					Object value2 = orderKey.invoke(o2);
+					
+					return value1.equals(value2) ? 1:0 ;
+					
+				} catch (Exception e) {
+					return 0;	
+				}
+			}
+		});
+		
+		return result_list;
 	}
 }

@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public abstract class NioClient extends Client {
+public abstract class NioClient extends Client implements AutoCloseable {
 	protected String ipAddress;
 	protected int port;
 	
@@ -22,7 +22,10 @@ public abstract class NioClient extends Client {
 		this.ipAddress = ip;
 		this.port = port;
 	}
-	
+	@Override
+	public boolean isOpen() throws IOException{
+        return socketChannel.isOpen();
+	}
 	@Override
 	public boolean connect() throws IOException{
 		InetSocketAddress address = new InetSocketAddress(this.ipAddress, this.port);
