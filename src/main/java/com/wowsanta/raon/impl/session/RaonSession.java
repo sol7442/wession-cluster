@@ -15,7 +15,9 @@ public class RaonSession implements Wession {
 	byte[] index;   
 	String random;
 	String token;
-	int    option;
+	String tokenOtp;
+	
+	byte[] option;
 	Date   createTime;
 	Date   modifyTime;
 	Properties attributes = new Properties();

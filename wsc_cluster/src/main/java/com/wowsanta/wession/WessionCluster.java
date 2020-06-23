@@ -8,6 +8,7 @@ import com.wowsanta.server.ServerException;
 import com.wowsanta.wession.cluster.ClusterRepository;
 import com.wowsanta.wession.core.CoreRepository;
 import com.wowsanta.wession.index.IndexRepository;
+import com.wowsanta.wession.index.IndexSingleFilter;
 import com.wowsanta.wession.manager.ClusterManager;
 import com.wowsanta.wession.manager.SyncManager;
 import com.wowsanta.wession.message.SearchRequestMessage;
@@ -129,8 +130,11 @@ public class WessionCluster implements WessionRepository<Wession> {
 	@Override
 	public SearchResponseMessage search(SearchRequestMessage request)throws RespositoryException{
 		SearchResponseMessage<Wession> response = null;
+		IndexSingleFilter filter = new IndexSingleFilter();
+		filter.parse(request.getFilter());
+		
 		try {
-			if(isIndexSearch(request.getFilter())) {
+			if(indexRepository.isIndexKey(filter)) {
 				response = indexRepository.search(request);
 			}else {
 				response = coreRepository.search(request);
@@ -148,13 +152,6 @@ public class WessionCluster implements WessionRepository<Wession> {
 		return coreRepository.size();
 	}
 	
-	private boolean isIndexSearch(String filter) {
-		if(filter == null || filter.startsWith("key"))
-			return false;
-		else
-			return true;
-	}
-
 	public void stop() {
 		ClusterManager.getInstance().stop();
 	}

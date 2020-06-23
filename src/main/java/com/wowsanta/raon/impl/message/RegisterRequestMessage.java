@@ -3,6 +3,7 @@ package com.wowsanta.raon.impl.message;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.wowsanta.raon.impl.data.BYTE4;
 import com.wowsanta.raon.impl.data.CMD;
 import com.wowsanta.raon.impl.data.INT;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
@@ -18,7 +19,7 @@ public class RegisterRequestMessage extends RaonSessionMessage {
 	private static final long serialVersionUID = RaonCommand.CMD_PS_REGISTER.getValue();
 	
 	CMD command = new CMD(RaonCommand.CMD_PS_REGISTER.getValue());
-	INT option;
+	BYTE4 option;
 	STR userId;
 	
 	@Override
@@ -28,7 +29,7 @@ public class RegisterRequestMessage extends RaonSessionMessage {
 
 	@Override
 	public void parse(ByteBuffer buffer) throws IOException {
-		option 	= readInt(buffer);
+		option 	= readByte4(buffer);
 		userId  = readStr(buffer);
 	}
 

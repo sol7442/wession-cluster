@@ -18,8 +18,8 @@ public abstract class RaonSessionMessage implements Message {
 		return new STR(buffer);
 	}
 	
-	public INDEX readByte4(ByteBuffer buffer) {
-		return new INDEX(buffer);
+	public BYTE4 readByte4(ByteBuffer buffer) {
+		return new BYTE4(buffer);
 	}
 	public RSTRS readRSTS(ByteBuffer buffer) {
 		return new RSTRS(buffer);

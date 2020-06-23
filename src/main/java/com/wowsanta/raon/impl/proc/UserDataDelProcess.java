@@ -3,7 +3,7 @@ package com.wowsanta.raon.impl.proc;
 
 import com.wowsanta.logger.LOG;
 import com.wowsanta.raon.impl.data.CMD;
-import com.wowsanta.raon.impl.data.INDEX;
+import com.wowsanta.raon.impl.data.BYTE4;
 import com.wowsanta.raon.impl.data.INT;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.raon.impl.data.STR;
@@ -34,7 +34,7 @@ public class UserDataDelProcess extends AbstractSessionProcess {
 			LOG.application().info("request  : {} ", request_message);
 			
 			String user_id      = request_message.getUserId().getValue();
-			INDEX index         = request_message.getSessionIndex();
+			BYTE4 index         = request_message.getSessionIndex();
 			
 			String session_key = SessionKeyGenerator.generate(user_id.getBytes(),index.toBytes());
 			RaonSession session = (RaonSession) WessionCluster.getInstance().read(session_key);
@@ -65,7 +65,16 @@ public class UserDataDelProcess extends AbstractSessionProcess {
 			erro_messge.setMessage(new STR(RaonError.ERRINTERNAL.getMessage()));
 			
 			response_message = erro_messge;
-		}finally {
+		}catch (Exception e) {
+			LOG.application().error(e.getMessage(), e);
+			
+			ErrorResonseMessage erro_messge = new ErrorResonseMessage();
+			erro_messge.setRequest(new CMD(RaonCommand.CMD_PS_REGISTER.getValue()));
+			erro_messge.setCode(new INT(RaonError.ERRINTERNAL.getCode()));
+			erro_messge.setMessage(new STR(RaonError.ERRINTERNAL.getMessage()));
+			
+			response_message = erro_messge;
+		} finally {
 			LOG.application().info("response : {} ", response_message);
 			
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));

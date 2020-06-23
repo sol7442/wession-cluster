@@ -18,6 +18,7 @@ public class RaonSessionPolicy implements Policy<RaonSession> {
 	int maxAccount = 1000;
 	int maxSession = 5;
 	int maxInactiveInterval=60;// TimeUnit.MINUTES;
+	int tokenOtpTimeout = 100;
 	
 	transient long maxAlivedInterval;
 
@@ -31,25 +32,65 @@ public class RaonSessionPolicy implements Policy<RaonSession> {
 	@Override
 	public boolean initialize() {
 		maxAlivedInterval = maxInactiveInterval * 1000 * 60;
+		tokenOtpTimeout   = tokenOtpTimeout * 1000;
 		return true;
 	}
 	
-	public PolicyResult create(RaonSession session, int account_size, int session_size) throws PolicyException {
-		PolicyResult result ;
+	public PolicyResult create(RaonSession session, int account_size, int session_size, byte[] reg_opt) throws PolicyException {
+		PolicyResult result = PolicyResult.RESULT_CREATE;
 		
-		result = check_account_size(account_size);
-		result = check_reg_option(session,session_size);
+		switch(reg_opt[3]) {
+		case 0x00: 
+		case 0x01:
+		case 0x02:
+			if(account_size >= maxAccount) {
+				throw new PolicyException("Max Account Limtied : ", RaonError.ERRACCOUNTFULL.getCode());
+			}
+			
+			if (session_size >= maxSession){
+				throw new PolicyException("Max Session Limtied : ",RaonError.ERRSESSIONFULL.getCode());
+			}
+			break;
+//		case 0x01:
+//			if(account_size >= maxAccount) {
+//				result = PolicyResult.RESULT_APPEND_ACCOUNT;
+//			}
+//			
+//			if (session_size >= maxSession){
+//				throw new PolicyException("Max Session Limtied : ",RaonError.ERRSESSIONFULL.getCode());
+//			}
+//			break;
+//		case 0x02:
+//			if(account_size >= maxAccount) {
+//				throw new PolicyException("Max Account Limtied : ", RaonError.ERRACCOUNTFULL.getCode());
+//			}
+//			
+//			if (session_size >= maxSession){
+//				result = PolicyResult.RESULT_APPEND_SESSION;
+//			}
+//			break;
+		case 0x03:
+			if(account_size >= maxAccount) {
+				result = PolicyResult.RESULT_APPEND_ACCOUNT;
+			}
+			if (session_size >= maxSession){
+				result = PolicyResult.RESULT_APPEND_SESSION;
+			}
+			break;
+		}
 		
-		LOG.process().info("{}:{}",session.getUserId(),result);
+		LOG.process().info("{} - {}/{}/{} : {}",session.getUserId(),reg_opt[3], session_size,account_size, result);
 		return result;
 	}
 	
 	public PolicyResult vaildte(RaonSession old_session, RaonSession vaildate_session) throws PolicyException {
-		PolicyResult result = null;
+		PolicyResult result = PolicyResult.RESULT_SUCCESS;
+		
 		long session_time = System.currentTimeMillis() - old_session.getModifyTime().getTime(); 
 		try {
 			if(session_time > maxAlivedInterval ) {
 				result = PolicyResult.RESULT_REMOVE;
+				throw new PolicyException(RaonError.ERRSESSIONTIMEOUT.getMessage(),RaonError.ERRSESSIONTIMEOUT.getCode())  ;
 			}
 			
 			if(!check_session_value(old_session.getRandom(), vaildate_session.getRandom())) {
@@ -64,6 +105,22 @@ public class RaonSessionPolicy implements Policy<RaonSession> {
 				}
 				result = PolicyResult.RESULT_UPDATE;
 			}
+			
+			if(vaildate_session.getTokenOtp() != null) {
+				if(!check_session_value(old_session.getTokenOtp(), vaildate_session.getTokenOtp())) {
+					result = PolicyResult.RESULT_ERROR;
+					throw new PolicyException(RaonError.ERRNEQTOKENOTP.getMessage(),RaonError.ERRNEQTOKENOTP.getCode())  ;
+				}
+				
+				long otp_time_out = System.currentTimeMillis() - old_session.getModifyTime().getTime();
+				if(otp_time_out > tokenOtpTimeout) {
+					result = PolicyResult.RESULT_ERROR;
+					throw new PolicyException(RaonError.ERRTIMEOUTTOKENOTP.getMessage(),RaonError.ERRTIMEOUTTOKENOTP.getCode())  ;
+				}
+				
+				result = PolicyResult.RESULT_UPDATE;
+			}
+			
 		}finally {
 			LOG.process().info("{}:{}",vaildate_session.getUserId(),result);
 		}
@@ -72,71 +129,7 @@ public class RaonSessionPolicy implements Policy<RaonSession> {
 	}
 	
 
-	/**
-	 * 허용된 세션 서버 용량 (user 수)
-	 * 
-	 * @return
-	 * @throws PolicyException
-	 */
-	private PolicyResult check_account_size(int account_size) throws PolicyException {
-		if(maxAccount < account_size) {
-			throw new PolicyException("Max Account Limtied : ", RaonError.ERRACCOUNTFULL.getCode())  ;
-		}
-		
-		LOG.process().debug("{}/{}",account_size,maxAccount);
-		return PolicyResult.RESULT_CREATE;
-	}
-
-
-	/**
-	 * session_size == 0 또는
-	 * 멀티 로그인이 가능하며, maxSession을 초과하지 않은 경우.
-	 * 멀티 로그인이 가능하며, maxSession을 초과했지만, 덮어쓰기가 가능한 경우
-	 * 
-	 * @param session
-	 * @return
-	 * @throws RespositoryException
-	 */
-	private PolicyResult check_reg_option(RaonSession session,int session_size ) throws PolicyException {
-		PolicyResult result = PolicyResult.RESULT_ERROR;
-		
-		int reg_option   = session.getOption();
-		
-		switch (reg_option) {
-		case 0: // 00000000 : multilogin false, overwrite false
-			if(session_size != 0) {
-				throw new PolicyException("Max Session Limtied : ",RaonError.ERRSESSIONFULL.getCode())  ;
-			}else {
-				result = PolicyResult.RESULT_CREATE;
-			}
-			break;
-		case 1: // 00000001 : multilogin false, overwrite true
-			if(session_size == 0) {
-				result = PolicyResult.RESULT_CREATE;
-			}else {
-				result = PolicyResult.RESULT_REMOVE_CREATE;
-			}
-			
-			break;
-		case 2: // 00000010 : multilogin true, overwrite false
-			if(maxSession == session_size) {
-				throw new PolicyException("Max Session Limtied : ",RaonError.ERRSESSIONFULL.getCode())  ;
-			}else {
-				result = PolicyResult.RESULT_CREATE;
-			}
-			break;
-		case 3: // 00000011 : multilogin true, overwrite true
-			if(maxSession != session_size) {
-				result = PolicyResult.RESULT_CREATE;
-			}else {
-				result = PolicyResult.RESULT_REMOVE_CREATE;
-			}
-			break;
-		}
-		
-		LOG.process().debug("{}({}) : {}/{}",session.getUserId(),reg_option,session_size,maxSession);
-		return result;
-	}
+	
 	
 
 	
@@ -186,20 +179,4 @@ public class RaonSessionPolicy implements Policy<RaonSession> {
 			LOG.system().error(e.getMessage(),e);
 		}
 	}
-
-	
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
 }

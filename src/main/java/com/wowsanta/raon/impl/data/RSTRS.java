@@ -11,8 +11,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class RSTRS extends DATA {
 	byte[] options;
-	List<RSTR> values = new ArrayList<>();
-
+	//List<RSTR> values = new ArrayList<>();
+	RSTR[] values = new RSTR[4];
+	
 	public RSTRS() {
 		this.options = new byte[4];
 	}
@@ -22,31 +23,31 @@ public class RSTRS extends DATA {
 		
 		for(byte i=0; i<this.options.length; i++) {
 			if(check_option(i, this.options[1])) {
-				values.add(i, RSTR.read(buffer));
+				//values.add(i, RSTR.read(buffer));
+				values[i] = RSTR.read(buffer);
 			}
 		}
 	}
 	
 	public void add(byte idx, RSTR value) {
 		this.options[1] += ((0x1)<<idx);
-		this.values.add(value);
-
+		//this.values.add(value);
+		values[idx] = value;
+		
 		this.size    = this.options.length;
-		
-		
 		for (RSTR rstr : values) {
-			this.size += rstr.getSize();
+			if(rstr != null) {
+				this.size += rstr.getSize();		
+			}
 		}
-		this.length = this.values.size();
-		
 	}
 	public void add(byte idx, String value) {
 		add(idx, new RSTR((byte) idx,value));
 	}
 	public RSTR get(int index) {
-		 if (index >= this.values.size()) {return null;}
+		// if (index >= this.values.size()) {return null;}
 			 
-		return this.values.get(index);
+		return this.values[index];//.get(index);
 	}
 
 	@Override
@@ -54,7 +55,9 @@ public class RSTRS extends DATA {
 		ByteBuffer buffer = ByteBuffer.allocate(this.size);
 		buffer.put(this.options);
 		for (RSTR rstr : values) {
-			buffer.put(rstr.toBytes());
+			if(rstr !=null) {
+				buffer.put(rstr.toBytes());				
+			}
 		}
 		return buffer.array();
 	}

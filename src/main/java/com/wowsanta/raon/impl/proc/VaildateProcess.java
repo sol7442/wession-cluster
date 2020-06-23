@@ -2,10 +2,11 @@ package com.wowsanta.raon.impl.proc;
 
 import java.util.Date;
 import java.util.Random;
+import java.util.Set;
 
 import com.wowsanta.logger.LOG;
 import com.wowsanta.raon.impl.data.CMD;
-import com.wowsanta.raon.impl.data.INDEX;
+import com.wowsanta.raon.impl.data.BYTE4;
 import com.wowsanta.raon.impl.data.INT;
 import com.wowsanta.raon.impl.data.RSTR;
 import com.wowsanta.raon.impl.data.RSTRS;
@@ -46,21 +47,25 @@ public class VaildateProcess extends AbstractSessionProcess {
 			
 			
 			user_id      		= request_message.getUserId().getValue();
-			INDEX index         = request_message.getSessionIndex();
+			BYTE4 index         = request_message.getSessionIndex();
 			String ramdom_value = request_message.getRandom().getValue();
-			String token_value  = getOptionalTokenId(request_message);
+			
+			String token_value  = getOptionalTokenValue(request_message, 0);
+			String token_otp    = getOptionalTokenValue(request_message, 1);
+			
 			
 			String session_key = SessionKeyGenerator.generate(user_id.getBytes(),index.toBytes());
 			RaonSession old_session = (RaonSession) WessionCluster.getInstance().read(session_key);
 			
 			if(old_session != null) {
 				
-				RaonSession val_session = generateVaildateSession(old_session,ramdom_value, token_value);
+				RaonSession val_session = generateVaildateSession(old_session,ramdom_value, token_value, token_otp);
 				RaonSessionPolicy policy = (RaonSessionPolicy) PolicyManager.getInstance().getPolicy();
 				
 				VaildateResponseMessage validate_message = new VaildateResponseMessage();
-				
 				PolicyResult result = policy.vaildte(old_session,val_session);	
+				
+				
 				if(result == PolicyResult.RESULT_REMOVE) {
 					WessionCluster.getInstance().delete(old_session);
 					throw new PolicyException(RaonError.ERRSESSIONTIMEOUT.getMessage(),RaonError.ERRSESSIONTIMEOUT.getCode())  ;
@@ -79,8 +84,9 @@ public class VaildateProcess extends AbstractSessionProcess {
 				}else {
 					// not
 				}
-				validate_message.setLot(new INT((int) old_session.getCreateTime().getTime()));
-				validate_message.setLat(new INT((int) val_session.getModifyTime().getTime())) ;
+				
+				validate_message.setLot(new INT(old_session.getCreateTime().getTime()));
+				validate_message.setLat(new INT(val_session.getModifyTime().getTime())) ;
 				
 				response_message = validate_message;
 				
@@ -139,28 +145,34 @@ public class VaildateProcess extends AbstractSessionProcess {
 		return new_token_value;
 	}
 
-	private RaonSession generateVaildateSession(RaonSession old_session, String ramdom_value, String token_value) {
+	private RaonSession generateVaildateSession(RaonSession old_session, String ramdom_value, String token_id, String token_otp) {
 		RaonSession vaildate_session = new RaonSession();
 		vaildate_session.setKey(old_session.getKey());
 		vaildate_session.setUserId(old_session.getUserId());
 		vaildate_session.setIndex(old_session.getIndex());
 		
 		vaildate_session.setRandom(ramdom_value);
-		vaildate_session.setToken(token_value);
+		vaildate_session.setToken(token_id);
+		vaildate_session.setTokenOtp(token_otp);
 		
 		vaildate_session.setCreateTime(old_session.getCreateTime());
 		vaildate_session.setModifyTime(new Date());
 		
+		if(old_session.getAttribute("user.data") != null) {
+			vaildate_session.setAttribute("user.data",old_session.getAttribute("user.data") );			
+		}
+
+		
 		return vaildate_session;
 	}
 
-	private String getOptionalTokenId(VaildateRequestMessage request_message) {
+	private String getOptionalTokenValue(VaildateRequestMessage request_message, int index) {
 		String token_value  = null;
 		RSTRS optional_data = request_message.getData();
 		if(optional_data != null) {
-			RSTR token_id = optional_data.get(0);
-			if(token_id != null) {
-				token_value = token_id.getValue();
+			RSTR token = optional_data.get(index);
+			if(token != null) {
+				token_value = token.getValue();
 			}
 		}
 		return token_value;

@@ -58,7 +58,7 @@
 	<logger name="system" level="${logback.mode}" additivity="false">
         <appender-ref ref="SYSTEM_LOG" />
     </logger>
-    <logger name="application" level="INFO" additivity="false">
+    <logger name="application" level="${logback.mode}" additivity="false">
         <appender-ref ref="APP_LOG" />
     </logger>
     <logger name="process" level="${logback.mode}" additivity="false" >

@@ -105,33 +105,38 @@ public class IndexRepository implements WessionRepository<Wession> {
 		SearchResponseMessage<Wession> response = new SearchResponseMessage<Wession>();
 		try {
 
-			SingleFilter filter = new SingleFilter();
+			IndexSingleFilter filter = new IndexSingleFilter();
 			filter.parse(request.getFilter());
+			
 			Method order_key = getKeyMethod(request.getOrderKey());
 			
 			LOG.process().debug("index.search.filter : {}-{} ", filter);
 			IndexNode node = nodeMap.get(filter.getKey());
 			if(node != null) {
 				List<Wession> wession_list = node.filter(filter,order_key);
-				int _index = request.getStartIndex();
-				int _count  = request.getCount();
-				if(_count > 0){
-					int _req_size = _index + _count;
-					int _f_index;
-					int _t_index;
-					if(_req_size >= wession_list.size()) {
-						_f_index = _index;
-						_t_index = _index + _count - 1;
+				if(wession_list != null) {
+					int _index = request.getStartIndex();
+					int _count  = request.getCount();
+					if(_count > 0){
+						int _req_size = _index + _count;
+						int _f_index;
+						int _t_index;
+						if(_req_size >= wession_list.size()) {
+							_f_index = _index;
+							_t_index = _index + _count - 1;
+						}else {
+							_f_index = _index;
+							_t_index = wession_list.size() - 1;
+						}
+						response.setResources(wession_list.subList(_f_index, _t_index));	
 					}else {
-						_f_index = _index;
-						_t_index = wession_list.size() - 1;
+						response.setResources(wession_list);	
 					}
-					response.setResources(wession_list.subList(_f_index, _t_index));	
+					response.setTotalResults(wession_list.size());					
 				}else {
-					response.setResources(wession_list);	
+					response.setResources(new ArrayList<>());	
+					response.setTotalResults(0);	
 				}
-				response.setTotalResults(wession_list.size());
-				
 			}else {
 				throw new RespositoryException("node not found : " + filter);
 			}
@@ -168,7 +173,7 @@ public class IndexRepository implements WessionRepository<Wession> {
 		}
 		return size;
 	}
-	private Method getKeyMethod(String key_name) throws RespositoryException {
+	public Method getKeyMethod(String key_name) throws RespositoryException {
 		Method key_method = null;
 		String method_name = toMethodName(key_name);
 		try {
@@ -190,6 +195,13 @@ public class IndexRepository implements WessionRepository<Wession> {
 			throw new RespositoryException(key_name + " method make failed.",e);
 		}
 		return buffer.toString();
+	}
+
+	public boolean isIndexKey(IndexSingleFilter filter) {
+		if(filter.key != null) {
+			return this.keyList.contains(filter.key);			
+		}
+		return false;
 	}
 
 }

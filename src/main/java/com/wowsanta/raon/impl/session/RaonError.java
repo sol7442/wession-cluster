@@ -37,7 +37,8 @@ public enum RaonError {
 	
 	ERRWRONGRANDOM( 		-9501,"Vaildate failed - random value missmatch"),
 	ERRNEQTOKENID( 			-9502,"Vaildate failed - token value missmatch"),
-	
+	ERRNEQTOKENOTP( 		-9503,"Vaildate failed - token otp value missmatch"),
+	ERRTIMEOUTTOKENOTP( 	-9504,"Vaildate failed - token otp value timeout"),
 	
 	EOF( 					-1	 ,""),
 	;

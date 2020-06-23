@@ -5,20 +5,13 @@ import java.nio.ByteBuffer;
 
 import com.wowsanta.logger.LOG;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
-import com.wowsanta.raon.impl.message.AccountListRequestMessage;
-import com.wowsanta.raon.impl.message.HelloRequestMessage;
-import com.wowsanta.raon.impl.message.RegisterRequestMessage;
-import com.wowsanta.raon.impl.message.TokenOtpGetRequestMessage;
-import com.wowsanta.raon.impl.message.UnregisterRequestMessage;
-import com.wowsanta.raon.impl.message.UserDataAddRequestMessage;
-import com.wowsanta.raon.impl.message.UserDataDelRequestMessage;
-import com.wowsanta.raon.impl.message.UserDataGetRequestMessage;
-import com.wowsanta.raon.impl.message.UserDataModRequestMessage;
-import com.wowsanta.raon.impl.message.VaildateRequestMessage;
 import com.wowsanta.raon.impl.proc.AbstractSessionProcess;
+import com.wowsanta.raon.impl.proc.AccountDelProcess;
 import com.wowsanta.raon.impl.proc.AccountListProcess;
 import com.wowsanta.raon.impl.proc.HelloProcess;
 import com.wowsanta.raon.impl.proc.RegisterProcess;
+import com.wowsanta.raon.impl.proc.SessionDelProcess;
+import com.wowsanta.raon.impl.proc.SessionListProcess;
 import com.wowsanta.raon.impl.proc.TokenOtpGetProcess;
 import com.wowsanta.raon.impl.proc.UnregisterProcess;
 import com.wowsanta.raon.impl.proc.UserDataAddProcess;
@@ -124,13 +117,13 @@ public class RaonSessionConnection extends NioConnection {
 			process = new AccountListProcess();
 			break;
 		case CMD_WRM_DELACCOUNTS:
-			process = null;
+			process = new AccountDelProcess();
 			break;
 		case CMD_WRM_SESSION:
-			process = null;
+			process = new SessionListProcess();
 			break;
 		case CMD_WRM_DELSESSION:
-			process = null;
+			process = new SessionDelProcess();
 			break;
 			
 		default:

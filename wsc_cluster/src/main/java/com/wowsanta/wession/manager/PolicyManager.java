@@ -70,6 +70,4 @@ public class PolicyManager {
 	public boolean isInitialized() {
 		return initialized;
 	}
-
-
 }

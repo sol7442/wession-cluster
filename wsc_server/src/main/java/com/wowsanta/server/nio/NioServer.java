@@ -93,7 +93,8 @@ public class NioServer extends Server implements  Runnable {
 			serverSocket.configureBlocking(false);
 			serverSocket.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 			serverSocket.setOption(StandardSocketOptions.SO_RCVBUF, 1024 * 16 * 2);
-			serverSocket.bind(new InetSocketAddress(ipAddr, port));
+			//serverSocket.bind(new InetSocketAddress(ipAddr, port));
+			serverSocket.bind(new InetSocketAddress(port));
 
 			LOG.system().info("{}/{}/{} - {}", this.getName(), serviceDispatcherClass, threadSize, new Date());
 			serverExecutor.execute(this);

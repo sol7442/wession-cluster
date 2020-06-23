@@ -44,7 +44,7 @@ public class IndexNode implements WessionRepository<Wession>{
 			}
 			list.add(session);
 			cache.put(index_key, list);
-			LOG.process().debug("create.index.{}={} : {} / {} ",keyName,index_key, session.getKey() ,list.size());
+			LOG.process().debug("create.index.{}={} : {} / {} ",keyName,index_key, cache.size(),list.size());
 		}
 	}
 	public List<Wession> list(String index_key) throws RespositoryException {
@@ -124,24 +124,32 @@ public class IndexNode implements WessionRepository<Wession>{
 	    }
 	    return lock;
 	}
-	public List<Wession> filter(SingleFilter filter, Method orderKey) {
-		List<Wession> result_list = filter.op.filter(this.cache, filter.getValue());
-		
-		Collections.sort(result_list, new Comparator<Wession>() {
-			@Override
-			public int compare(Wession o1, Wession o2) {
-				try {
-					Object value1 = orderKey.invoke(o1);
-					Object value2 = orderKey.invoke(o2);
-					
-					return value1.equals(value2) ? 1:0 ;
-					
-				} catch (Exception e) {
-					return 0;	
+	public List<Wession> filter(IndexSingleFilter filter, Method order_key) {
+		List<Wession> result_list = filter.operator.filter(this.cache, filter.getValue());
+		if(result_list != null) {
+			Collections.sort(result_list, new Comparator<Wession>() {
+				@SuppressWarnings({ "rawtypes", "unchecked" })
+				@Override
+				public int compare(Wession o1, Wession o2) {
+					try {
+						if(o2 == null) return 1;
+						if(o1 == null) return -1;
+						
+						Comparable value1 = (Comparable) order_key.invoke(o1);
+						Comparable value2 = (Comparable) order_key.invoke(o2);
+
+						if(value2 == null) return 1;
+						if(value1 == null) return 2;
+						
+						return  value1.compareTo(value2);
+						
+					} catch (Exception e) {
+						LOG.application().error("{}",e.getMessage(), e);
+						return 0;	
+					}
 				}
-			}
-		});
-		
+			});			
+		}
 		return result_list;
 	}
 }

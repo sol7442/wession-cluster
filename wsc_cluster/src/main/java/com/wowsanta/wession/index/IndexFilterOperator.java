@@ -26,7 +26,7 @@ import java.util.Set;
 
 import com.wowsanta.wession.session.Wession;
 
-public enum Operator
+public enum IndexFilterOperator
 {
     EQ("eq", "equal" , "="){
 		@Override
@@ -85,7 +85,6 @@ public enum Operator
     LT("lt", "less than", "<"){
 		@Override
 		public List<Wession> filter(Map<String,List<Wession>> map, String filter) {
-			// TODO Auto-generated method stub
 			return null;
 		}
     },
@@ -121,7 +120,7 @@ public enum Operator
     private String rdb;
     private String desc;
     
-    private Operator( String val, String desc , String rdb)
+    private IndexFilterOperator( String val, String desc , String rdb)
     {
         this.val  = val;
         this.desc = desc;
@@ -139,7 +138,7 @@ public enum Operator
 		return this.rdb;
 	}
     
-    public static Operator getByName( String name )
+    public static IndexFilterOperator getByName( String name )
     {
         name = name.toLowerCase();
         switch(name) {

@@ -3,7 +3,8 @@ package com.wowsanta.raon.impl.message;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.wowsanta.raon.impl.data.INDEX;
+import com.wowsanta.raon.impl.data.BYTE4;
+import com.wowsanta.logger.LOG;
 import com.wowsanta.raon.impl.data.CMD;
 import com.wowsanta.raon.impl.data.RSTRS;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
@@ -21,7 +22,7 @@ public class VaildateRequestMessage extends RaonSessionMessage {
 	CMD command = new CMD(RaonCommand.CMD_PS_SESSIONVALID.getValue());
 	STR userId;
 	STR random;
-	INDEX sessionIndex;
+	BYTE4 sessionIndex;
 	RSTRS data;
 	
 	@Override
@@ -31,10 +32,18 @@ public class VaildateRequestMessage extends RaonSessionMessage {
 
 	@Override
 	public void parse(ByteBuffer buffer) throws IOException {
-		userId  = readStr(buffer);
-		random 	= readStr(buffer);
-		sessionIndex = readByte4(buffer);
-		data    = readRSTS(buffer);
+		try {
+			userId  = readStr(buffer);
+			random 	= readStr(buffer);
+			sessionIndex = readByte4(buffer);
+			data    = readRSTS(buffer);			
+			
+		}catch (Exception e) {
+			LOG.application().error(e.getMessage(), e);
+			throw e;
+		}finally {
+			LOG.application().debug("parse : {}",this);
+		}
 	}
 
 	@Override

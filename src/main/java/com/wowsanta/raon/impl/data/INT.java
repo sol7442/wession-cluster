@@ -32,8 +32,8 @@ public class INT extends DATA {
 				(((int)bytes[idx + 3] & 0xff));
 	}
 
-	public INT(long time) {
-		this((int)time);
+	public INT(long long_value) {
+		this((int) (long_value/1000));
 	}
 
 	public int getValue() {
@@ -43,6 +43,8 @@ public class INT extends DATA {
 	public byte[] toBytes(){
 		ByteBuffer buffer = ByteBuffer.allocate(this.size);
 		buffer.putInt(this.value);
+		System.out.println("this.value : " + this.value);
+		
 
 //		byte[] data = new byte[this.size];
 //		

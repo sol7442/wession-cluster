@@ -1,5 +1,6 @@
 {
-  "maxAccount": 1000,
+  "maxAccount": 5,
   "maxSession": 5,
-  "maxInactiveInterval": 1
+  "maxInactiveInterval": 30,
+  "tokenOtpTimeout":3
 }

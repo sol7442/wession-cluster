@@ -7,24 +7,24 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class INDEX extends DATA {
+public class BYTE4 extends DATA {
 	public static final int  LENGTH = 4;
 	byte[] value;
 
-	public INDEX() {
+	public BYTE4() {
 		this.length  = LENGTH;
 		this.padding = 0;
 		this.size    = this.length + this.padding;
 		this.value   = new byte[LENGTH];
 	}
-	public INDEX(ByteBuffer buffer) {
+	public BYTE4(ByteBuffer buffer) {
 		this.length  = LENGTH;
 		this.padding = 0;
 		this.size    = this.length + this.padding;
 		this.value   = new byte[LENGTH];
 		buffer.get(this.value);
 	}
-	public INDEX(byte[] data) {
+	public BYTE4(byte[] data) {
 		this.length  = LENGTH;
 		this.padding = 0;
 		this.size    = this.length + this.padding;
