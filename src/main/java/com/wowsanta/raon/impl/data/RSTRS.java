@@ -1,8 +1,11 @@
 package com.wowsanta.raon.impl.data;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.wowsanta.logger.LOG;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,19 +14,17 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class RSTRS extends DATA {
 	byte[] options;
-	//List<RSTR> values = new ArrayList<>();
 	RSTR[] values = new RSTR[4];
 	
 	public RSTRS() {
 		this.options = new byte[4];
 	}
-	public RSTRS(ByteBuffer buffer) {
+	public RSTRS(ByteBuffer buffer) throws BufferUnderflowException{
 		this.options = new byte[4];
 		buffer.get(this.options);
 		
 		for(byte i=0; i<this.options.length; i++) {
 			if(check_option(i, this.options[1])) {
-				//values.add(i, RSTR.read(buffer));
 				values[i] = RSTR.read(buffer);
 			}
 		}
@@ -31,7 +32,6 @@ public class RSTRS extends DATA {
 	
 	public void add(byte idx, RSTR value) {
 		this.options[1] += ((0x1)<<idx);
-		//this.values.add(value);
 		values[idx] = value;
 		
 		this.size    = this.options.length;
@@ -45,8 +45,6 @@ public class RSTRS extends DATA {
 		add(idx, new RSTR((byte) idx,value));
 	}
 	public RSTR get(int index) {
-		// if (index >= this.values.size()) {return null;}
-			 
 		return this.values[index];//.get(index);
 	}
 
@@ -90,6 +88,29 @@ public class RSTRS extends DATA {
 			}
 		}
 		
+		return value;
+	}
+	public static RSTRS parse(ByteBuffer buffer) throws BufferUnderflowException {
+		RSTRS value = new RSTRS();
+		try {
+			buffer.mark();
+			LOG.application().debug("mark : {}/{}",buffer, value);
+			
+			BYTE4 options = BYTE4.parse(buffer);
+			
+			for(byte i=0; i< options.value.length; i++) {
+				if(check_option(i, options.value[1])) {
+					value.add(i, RSTR.parse(buffer));
+				}
+			}
+		}catch (BufferUnderflowException e) {
+			buffer.reset();
+			LOG.application().debug("reset : {}/{}",buffer, value);
+			
+			throw e;
+		}finally {
+			LOG.application().debug("parse : {}/{}",buffer, value);		
+		}
 		return value;
 	}
 	

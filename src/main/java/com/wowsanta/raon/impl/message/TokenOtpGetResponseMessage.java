@@ -7,6 +7,7 @@ import com.wowsanta.raon.impl.data.CMD;
 import com.wowsanta.raon.impl.data.RSTRS;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.raon.impl.session.RaonCommand;
+import com.wowsanta.server.ServerException;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,7 +17,8 @@ import lombok.EqualsAndHashCode;
 public class TokenOtpGetResponseMessage extends RaonSessionMessage {
 	private static final long serialVersionUID = -RaonCommand.CMD_PS_GETTOKENOTP.getValue();
 	
-	CMD command   = new CMD(RaonCommand.CMD_PS_GETTOKENOTP.getValue());
+	RaonCommand command = RaonCommand.CMD_PS_GETTOKENOTP;
+	
 	RSTRS data = new RSTRS();
 	
 	@Override
@@ -25,17 +27,23 @@ public class TokenOtpGetResponseMessage extends RaonSessionMessage {
 	}
 
 	@Override
-	public void parse(ByteBuffer buffer) throws IOException {
-		//
+	public int parse(ByteBuffer buffer) throws ServerException {
+		return 0;
 	}
 	@Override
 	public void flush() throws IOException{
-		int total_size = command.getSize() + data.getSize();
+		int total_size = command.toCommand().getSize() + data.getSize();
 		ByteBuffer buffer = ByteBuffer.allocate(total_size);
 		
-		buffer.put(command.toBytes());
+		buffer.put(command.toCommand().toBytes());
 		buffer.put(data.toBytes());
 		
 		this.bytes = buffer.array();
+	}
+
+	@Override
+	public boolean isComplate() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

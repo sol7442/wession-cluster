@@ -1,7 +1,9 @@
 package com.wowsanta.raon.impl.data;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
+import com.wowsanta.logger.LOG;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,13 +28,24 @@ public class RSTR extends DATA {
 		this.size    = INT.LENGTH + 1 + this.length + this.padding;
 		this.value   = new String(byte_data);
 	}
-	public RSTR(byte idx, String str) {
+	public RSTR(byte idx, String str) throws BufferUnderflowException{
 		byte[] byte_data = str.getBytes();
 		
 		this.length  = byte_data.length;
 		this.padding = getPadding(length + 1);
+		
 		this.size    = INT.LENGTH + 1 + this.length + this.padding;
 		this.value   = str;
+		this.index   = idx;
+	}
+	
+	public RSTR(byte idx, byte[] byte_data) {
+		
+		this.length  = byte_data.length;
+		this.padding = getPadding(length + 1);
+		
+		this.size    = INT.LENGTH + 1 + this.length + this.padding;
+		this.value   = new String(byte_data);
 		this.index   = idx;
 	}
 	
@@ -50,7 +63,7 @@ public class RSTR extends DATA {
 	}
 	
 	
-	public static RSTR read(ByteBuffer buffer) {
+	public static RSTR read(ByteBuffer buffer) throws BufferUnderflowException{
 		int data_len = buffer.getInt();
 		byte idx = buffer.get();
 		int padding = 4 - data_len%4;
@@ -80,6 +93,36 @@ public class RSTR extends DATA {
 		for(int i=0; i<padding; i++) {
 			buffer.put((byte) 0x00);
 		}
+	}
+	public static RSTR parse(ByteBuffer buffer) {
+		RSTR value = null;
+		try {
+			buffer.mark(); 
+			LOG.application().debug("mark : {}/{}",buffer, value);
+			
+			INT length = new INT(buffer.getInt());
+			byte index = buffer.get();
+			
+			byte[] byte_data = new byte[length.getValue() - 1];
+			buffer.get(byte_data);
+			
+			int padding = getPadding(length.getValue());
+			for(int i=0; i<padding; i++) {
+				buffer.get();
+			}
+			value = new RSTR(index, byte_data);
+			
+			
+		}catch (BufferUnderflowException e) {
+			buffer.reset();
+			LOG.application().debug("reset : {}/{}",buffer, value);
+			
+			throw e;
+		}finally {
+			LOG.application().debug("parse : {}/{}",buffer, value);			
+		}
+		
+		return value;
 	}
 
 	

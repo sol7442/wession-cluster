@@ -15,7 +15,7 @@ import com.wowsanta.wession.policy.PolicyException;
 import com.wowsanta.wession.repository.RespositoryException;
 
 public class RaonSessionPolicy implements Policy<RaonSession> {
-	int maxAccount = 1000;
+	//int maxAccount = 1000;
 	int maxSession = 5;
 	int maxInactiveInterval=60;// TimeUnit.MINUTES;
 	int tokenOtpTimeout = 100;
@@ -43,36 +43,11 @@ public class RaonSessionPolicy implements Policy<RaonSession> {
 		case 0x00: 
 		case 0x01:
 		case 0x02:
-			if(account_size >= maxAccount) {
-				throw new PolicyException("Max Account Limtied : ", RaonError.ERRACCOUNTFULL.getCode());
-			}
-			
 			if (session_size >= maxSession){
 				throw new PolicyException("Max Session Limtied : ",RaonError.ERRSESSIONFULL.getCode());
 			}
 			break;
-//		case 0x01:
-//			if(account_size >= maxAccount) {
-//				result = PolicyResult.RESULT_APPEND_ACCOUNT;
-//			}
-//			
-//			if (session_size >= maxSession){
-//				throw new PolicyException("Max Session Limtied : ",RaonError.ERRSESSIONFULL.getCode());
-//			}
-//			break;
-//		case 0x02:
-//			if(account_size >= maxAccount) {
-//				throw new PolicyException("Max Account Limtied : ", RaonError.ERRACCOUNTFULL.getCode());
-//			}
-//			
-//			if (session_size >= maxSession){
-//				result = PolicyResult.RESULT_APPEND_SESSION;
-//			}
-//			break;
 		case 0x03:
-			if(account_size >= maxAccount) {
-				result = PolicyResult.RESULT_APPEND_ACCOUNT;
-			}
 			if (session_size >= maxSession){
 				result = PolicyResult.RESULT_APPEND_SESSION;
 			}

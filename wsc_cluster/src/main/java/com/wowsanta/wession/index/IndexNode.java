@@ -67,14 +67,18 @@ public class IndexNode implements WessionRepository<Wession>{
 		String index_key = getIndexKeyValue(session);
 		synchronized(getLock(index_key)){
 			List<Wession> list=cache.get(index_key);
-			for (Wession wession : list) {
-				if(wession.getKey().equals(session.getKey())){
-					list.remove(wession);
-					if(list.size() == 0) {
-						cache.remove(index_key);
+			if(list != null) {
+				for (Wession wession : list) {
+					if(wession.getKey().equals(session.getKey())){
+						list.remove(wession);
+						if(list.size() == 0) {
+							cache.remove(index_key);
+						}
+						break;
 					}
-					break;
-				}
+				}	
+			}else {
+				LOG.process().warn("already removed : ", session.getKey());
 			}
 		}
 		LOG.process().debug("delete.index.{}={} : {} ",keyName,index_key, session.getKey());

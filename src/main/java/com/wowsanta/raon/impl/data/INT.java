@@ -1,7 +1,10 @@
 package com.wowsanta.raon.impl.data;
 
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+
+import com.wowsanta.logger.LOG;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -43,48 +46,25 @@ public class INT extends DATA {
 	public byte[] toBytes(){
 		ByteBuffer buffer = ByteBuffer.allocate(this.size);
 		buffer.putInt(this.value);
-		System.out.println("this.value : " + this.value);
-		
-
-//		byte[] data = new byte[this.size];
-//		
-//		data[0] = (byte)(value >> 24);
-//		data[1] = (byte)(value >> 16);
-//		data[2] = (byte)(value >> 8);
-//		data[3] = (byte)(value);
 		
 		return buffer.array(); 
 	}
-	
-		
-//	public INT(byte[] bytes) {
-//		this.value = 	(
-//				(((int)bytes[0] & 0xff) << 24) |
-//				(((int)bytes[1] & 0xff) << 16) |
-//				(((int)bytes[2] & 0xff) << 8)  |
-//				(((int)bytes[3] & 0xff)));
-//		this.length = 4;
-//	}
-//	@Override
-//}
-//	public static INT read(NioConnection connection) throws IOException {
-//		byte[] data = new byte[4];
-//		connection.read(data);
-//		return new INT(data);
-//	}
-	
-//	
-//
-//	
-//	public static INT read(ByteBuffer buffer) {
-//		int value = buffer.getInt();
-//		return new INT(value);
-//	}
-//	
-//	@Override
-//	public void write(ByteBuffer buffer) {
-//		buffer.putInt(this.value);
-//	}
-	
+
+	public static INT parse(ByteBuffer buffer) throws BufferUnderflowException {
+		INT value = null;
+		buffer.mark(); 
+		try {			
+			LOG.application().debug("mark : {}/{}",buffer, value);
+			
+			value = new INT(buffer.getInt());
+		}catch (BufferUnderflowException e) {
+			buffer.reset();
+			LOG.application().debug("reset : {}/{}",buffer, value);
+			throw e;
+		}finally {
+			LOG.application().debug("parse : {}/{}",buffer, value);			
+		}
+		return value;
+	}
 
 }

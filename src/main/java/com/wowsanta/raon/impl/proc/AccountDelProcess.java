@@ -34,6 +34,10 @@ public class AccountDelProcess extends AbstractSessionProcess {
 		setRequest(new SessionRequest(new AccountDelRequestMessage()));
 	}
 
+	public AccountDelProcess(RaonSessionMessage request) {
+		setRequest(new SessionRequest(request));
+	}
+
 	@Override
 	public void porcess() throws ServerException {
 
@@ -41,7 +45,7 @@ public class AccountDelProcess extends AbstractSessionProcess {
 		RaonSessionMessage response_message = null;
 		
 		try {
-			LOG.application().info("request  : {} ", request_message);
+			LOG.application().debug("request  : {} ", request_message);
 			
 			STR[] accounts_array = request_message.getAccounts();
 			for(int i= 0; i<accounts_array.length; i++) {
@@ -84,7 +88,7 @@ public class AccountDelProcess extends AbstractSessionProcess {
 			response_message = erro_messge;
 		}
 		finally {
-			LOG.application().info("response : {} ", response_message);
+			LOG.application().debug("response : {} ", response_message);
 			
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));
 			

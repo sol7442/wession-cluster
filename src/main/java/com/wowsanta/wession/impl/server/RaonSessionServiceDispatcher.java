@@ -58,7 +58,7 @@ public class RaonSessionServiceDispatcher extends ServiceDispatcher{
 				RaonSessionMessage request_message = request.getMessage();
 				
 				ErrorResonseMessage error_message = new ErrorResonseMessage();
-				error_message.setRequest(request_message.getCommand());
+				error_message.setCommand(request_message.getCommand());
 				error_message.setCode(new INT(5000));
 				error_message.setMessage(new STR("SERVER ERROR : " + error.getMessage()));
 				

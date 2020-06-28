@@ -16,7 +16,7 @@ public abstract class DATA {
 	//abstract public void write(ByteBuffer buffer);
 	
 	abstract public byte[] toBytes();
-	public int getPadding(int length) {
+	public static int getPadding(int length) {
 		int padding = 4 - length % 4;
 		if(padding == 4) {
 			padding = 0;

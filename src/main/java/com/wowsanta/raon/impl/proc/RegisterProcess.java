@@ -34,8 +34,9 @@ import com.wowsanta.wession.policy.PolicyException;
 import com.wowsanta.wession.repository.RespositoryException;
 
 public class RegisterProcess extends AbstractSessionProcess {
-	public RegisterProcess() {
-		setRequest(new SessionRequest(new RegisterRequestMessage()));
+
+	public RegisterProcess(RaonSessionMessage request) {
+		setRequest(new SessionRequest(request));
 	}
 
 	@Override
@@ -48,7 +49,7 @@ public class RegisterProcess extends AbstractSessionProcess {
 		BYTE4 reg_opt  = null;
 		try {
 			
-			LOG.application().info("request  : {} ", request_message);
+			LOG.application().debug("request  : {} ", request_message);
 			
 			user_id = request_message.getUserId().getValue();
 			reg_opt = request_message.getOption();//.getValue();
@@ -64,9 +65,7 @@ public class RegisterProcess extends AbstractSessionProcess {
 			PolicyResult result = policy.create(session,account_size,session_size,reg_opt.getValue());
 			switch (result) {
 			case RESULT_CREATE:
-				break;
 			case RESULT_APPEND_ACCOUNT:
-				old_account_remomve();
 				break;
 			case RESULT_APPEND_SESSION:
 				old_seesion_remomve(session.getUserId());
@@ -108,44 +107,44 @@ public class RegisterProcess extends AbstractSessionProcess {
 		} 
 		
 		finally {
-			LOG.application().info("response : {} ", response_message);
+			LOG.application().debug("response : {} ", response_message);
 			
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));
 			
 		}
 	}
 
-	private void old_account_remomve() throws RespositoryException {
-		
-		List<RaonSession> delete_session_list = new ArrayList<RaonSession>();
-		
-		SearchRequestMessage request = new SearchRequestMessage();
-		request.setOrderKey("modifyTime");
-		RaonSession old_session = null;
-		@SuppressWarnings("unchecked")
-		SearchResponseMessage<RaonSession> response = WessionCluster.getInstance().search(request);
-		List<RaonSession> search_list = response.getResources();
-		if(search_list.size() > 0) {
-			old_session = search_list.get(0);	
-			
-			SearchRequestMessage search_request = new SearchRequestMessage();
-			String filter = "userId eq " + old_session.getUserId();
-			search_request.setFilter(filter);
-			search_request.setOrderKey("modifyTime");
-			
-			@SuppressWarnings("unchecked")
-			SearchResponseMessage<RaonSession> search_response =  WessionCluster.getInstance().search(search_request);
-			List<RaonSession> resource_list = search_response.getResources();
-			
-			delete_session_list.addAll(resource_list);
-		}
-
-		for (RaonSession session : delete_session_list) {
-			WessionCluster.getInstance().delete(session);					
-			LOG.process().info("OLD ACCOUNT REMOVE : {}",session);
-		}
-		
-	}
+//	private void old_account_remomve() throws RespositoryException {
+//		
+//		List<RaonSession> delete_session_list = new ArrayList<RaonSession>();
+//		
+//		SearchRequestMessage request = new SearchRequestMessage();
+//		request.setOrderKey("modifyTime");
+//		RaonSession old_session = null;
+//		@SuppressWarnings("unchecked")
+//		SearchResponseMessage<RaonSession> response = WessionCluster.getInstance().search(request);
+//		List<RaonSession> search_list = response.getResources();
+//		if(search_list.size() > 0) {
+//			old_session = search_list.get(0);	
+//			
+//			SearchRequestMessage search_request = new SearchRequestMessage();
+//			String filter = "userId eq " + old_session.getUserId();
+//			search_request.setFilter(filter);
+//			search_request.setOrderKey("modifyTime");
+//			
+//			@SuppressWarnings("unchecked")
+//			SearchResponseMessage<RaonSession> search_response =  WessionCluster.getInstance().search(search_request);
+//			List<RaonSession> resource_list = search_response.getResources();
+//			
+//			delete_session_list.addAll(resource_list);
+//		}
+//
+//		for (RaonSession session : delete_session_list) {
+//			WessionCluster.getInstance().delete(session);					
+//			LOG.process().info("OLD ACCOUNT REMOVE : {}",session);
+//		}
+//		
+//	}
 
 	private void old_seesion_remomve(String userId) throws RespositoryException {
 		SearchRequestMessage request = new SearchRequestMessage();

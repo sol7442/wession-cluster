@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import com.wowsanta.raon.impl.data.CMD;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
 import com.wowsanta.raon.impl.session.RaonCommand;
+import com.wowsanta.server.ServerException;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,27 +14,38 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class SessionDelResonseMessage extends RaonSessionMessage {
-	private static final long serialVersionUID = -RaonCommand.CMD_WRM_DELSESSION.getValue();
+	private static final long serialVersionUID = -RaonCommand.CMD_PS_DELSESSION.getValue();
 	
-	CMD command   = new CMD(RaonCommand.CMD_WRM_DELSESSION.getValue());
+	RaonCommand command = RaonCommand.CMD_PS_DELSESSION;
 	
 	@Override
 	public byte[] toBytes() throws IOException {
 		return this.bytes;
 	}
 
-	@Override
-	public void parse(ByteBuffer buffer) throws IOException {
-		//
-	}
+	
 	
 	@Override
 	public void flush() throws IOException{
-		int total_size = command.getSize();
+		int total_size = command.toCommand().getSize();
 
 		ByteBuffer buffer = ByteBuffer.allocate(total_size);
-		buffer.put(command.toBytes());
+		buffer.put(command.toCommand().toBytes());
 		
 		this.bytes = buffer.array();
+	}
+
+
+
+	@Override
+	public int parse(ByteBuffer buffer) throws ServerException {
+		return 0;
+	}
+
+
+
+	@Override
+	public boolean isComplate() {
+		return false;
 	}
 }

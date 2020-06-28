@@ -33,7 +33,10 @@ import com.wowsanta.wession.repository.RespositoryException;
 public class VaildateProcess extends AbstractSessionProcess {
 	public VaildateProcess() {
 		setRequest(new SessionRequest(new VaildateRequestMessage()));
-		//setResponse(new SessionResponse(new VaildateResponseMessage(),getRequest().getSession()));
+	}
+
+	public VaildateProcess(RaonSessionMessage request) {
+		setRequest(new SessionRequest(request));
 	}
 
 	@Override
@@ -43,7 +46,7 @@ public class VaildateProcess extends AbstractSessionProcess {
 		try {
 
 			VaildateRequestMessage  request_message  = (VaildateRequestMessage) getRequest().getMessage();
-			LOG.application().info("request  : {} ", request_message);
+			LOG.application().debug("request  : {} ", request_message);
 			
 			
 			user_id      		= request_message.getUserId().getValue();
@@ -130,7 +133,7 @@ public class VaildateProcess extends AbstractSessionProcess {
 		
 		
 		finally {
-			LOG.application().info("response : {} ", response_message);
+			LOG.application().debug("response : {} ", response_message);
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));
 		}
 	}

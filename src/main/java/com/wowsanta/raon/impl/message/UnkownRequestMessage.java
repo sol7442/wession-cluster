@@ -5,10 +5,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 import com.wowsanta.logger.LOG;
-import com.wowsanta.raon.impl.data.CMD;
-import com.wowsanta.raon.impl.data.INT;
 import com.wowsanta.raon.impl.data.RaonSessionMessage;
-import com.wowsanta.raon.impl.data.STR;
 import com.wowsanta.raon.impl.session.RaonCommand;
 import com.wowsanta.server.ServerException;
 
@@ -17,14 +14,11 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class AccountListRequestMessage extends RaonSessionMessage {
-	private static final long serialVersionUID = RaonCommand.CMD_WRM_ACCOUNTS.getValue();
+public class UnkownRequestMessage extends RaonSessionMessage{
+	private static final long serialVersionUID = RaonCommand.CMD_UNKNOWN.getValue();
 	
-	RaonCommand command = RaonCommand.CMD_WRM_ACCOUNTS;
+	RaonCommand command = RaonCommand.CMD_UNKNOWN;
 	
-	INT page;
-	INT rows;
-	STR filter;
 	
 	@Override
 	public byte[] toBytes() throws IOException {
@@ -32,21 +26,16 @@ public class AccountListRequestMessage extends RaonSessionMessage {
 	}
 
 	@Override
-	public int parse(ByteBuffer buffer) throws ServerException{
+	public void flush() throws IOException {
 		
+	}
+
+	@Override
+	public int parse(ByteBuffer buffer) throws ServerException {
 		int result = -1;
 		try {
-			if(page == null) {
-				page = INT.parse(buffer);
-			}
 			
-			if(rows == null) {
-				rows = INT.parse(buffer);
-			}
-			
-			if(filter == null) {
-				filter  = STR.parse(buffer);
-			}
+			this.bytes = buffer.array();
 			
 			result = buffer.remaining();
 		}catch (BufferUnderflowException e) {
@@ -58,11 +47,8 @@ public class AccountListRequestMessage extends RaonSessionMessage {
 	}
 
 	@Override
-	public void flush() throws IOException{
+	public boolean isComplate() {
+		return this.bytes != null;
 	}
 
-	@Override
-	public boolean isComplate() {
-		return page != null && rows != null && filter!= null;
-	}
 }

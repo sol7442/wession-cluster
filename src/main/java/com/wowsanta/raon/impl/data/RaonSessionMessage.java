@@ -1,27 +1,29 @@
 package com.wowsanta.raon.impl.data;
 
 
-import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
+import com.wowsanta.raon.impl.session.RaonCommand;
 import com.wowsanta.server.Message;
+import com.wowsanta.server.ServerException;
 
 public abstract class RaonSessionMessage implements Message {
 	private static final long serialVersionUID = 8393872998437812701L;
 	protected byte[] bytes;
 	
-	public INT readInt(ByteBuffer buffer) {
+	public INT readInt(ByteBuffer buffer) throws BufferUnderflowException {
 		return new INT(buffer.getInt());
 	}
 	
-	public STR readStr(ByteBuffer buffer) {
+	public STR readStr(ByteBuffer buffer) throws ServerException, BufferUnderflowException{
 		return new STR(buffer);
 	}
 	
-	public BYTE4 readByte4(ByteBuffer buffer) {
+	public BYTE4 readByte4(ByteBuffer buffer) throws BufferUnderflowException{
 		return new BYTE4(buffer);
 	}
-	public RSTRS readRSTS(ByteBuffer buffer) {
+	public RSTRS readRSTS(ByteBuffer buffer) throws BufferUnderflowException{
 		return new RSTRS(buffer);
 	}
 	
@@ -37,6 +39,8 @@ public abstract class RaonSessionMessage implements Message {
 		return new STR(bytes,idx);
 	}
 	
-	public abstract CMD getCommand();
-	public abstract void parse(ByteBuffer buffer)throws IOException;
+	public abstract int parse(ByteBuffer buffer)throws ServerException,BufferUnderflowException;
+	public abstract boolean isComplate();
+
+	public abstract RaonCommand getCommand();
 }

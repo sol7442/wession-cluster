@@ -29,13 +29,17 @@ public class UserDataAddProcess extends AbstractSessionProcess {
 		
 	}
 
+	public UserDataAddProcess(RaonSessionMessage request) {
+		setRequest(new SessionRequest(request));
+	}
+
 	@Override
 	public void porcess() throws ServerException {
 		UserDataAddRequestMessage  request_message  = (UserDataAddRequestMessage) getRequest().getMessage();
 		RaonSessionMessage response_message = null;
 		
 		try {
-			LOG.application().info("request  : {} ", request_message);
+			LOG.application().debug("request  : {} ", request_message);
 			
 			String user_id      = request_message.getUserId().getValue();
 			BYTE4 index         = request_message.getSessionIndex();
@@ -80,7 +84,7 @@ public class UserDataAddProcess extends AbstractSessionProcess {
 			
 			response_message = erro_messge;
 		} finally {
-			LOG.application().info("response : {} ", response_message);
+			LOG.application().debug("response : {} ", response_message);
 			
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));
 		}

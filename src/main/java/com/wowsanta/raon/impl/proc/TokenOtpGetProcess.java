@@ -36,7 +36,10 @@ import com.wowsanta.wession.repository.RespositoryException;
 public class TokenOtpGetProcess extends AbstractSessionProcess {
 	public TokenOtpGetProcess() {
 		setRequest(new SessionRequest(new TokenOtpGetRequestMessage()));
-		setResponse(new SessionResponse(new TokenOtpGetResponseMessage(), getRequest().getSession()));
+	}
+
+	public TokenOtpGetProcess(RaonSessionMessage request) {
+		setRequest(new SessionRequest(request));
 	}
 
 	@Override
@@ -47,7 +50,7 @@ public class TokenOtpGetProcess extends AbstractSessionProcess {
 		
 		String user_id = null;
 		try {
-			LOG.application().info("request  : {} ", request_message);
+			LOG.application().debug("request  : {} ", request_message);
 			
 			user_id = request_message.getUserId().getValue();
 			BYTE4 index         = request_message.getSessionIndex();
@@ -126,7 +129,7 @@ public class TokenOtpGetProcess extends AbstractSessionProcess {
 		} 
 		
 		finally {
-			LOG.application().info("response : {} ", response_message);
+			LOG.application().debug("response : {} ", response_message);
 			
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));
 			

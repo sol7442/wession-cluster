@@ -30,6 +30,10 @@ public class SessionListProcess extends AbstractSessionProcess {
 		setRequest(new SessionRequest(new SessionListRequestMessage()));
 	}
 
+	public SessionListProcess(RaonSessionMessage request) {
+		setRequest(new SessionRequest(request));
+	}
+
 	@Override
 	public void porcess() throws ServerException {
 
@@ -37,7 +41,7 @@ public class SessionListProcess extends AbstractSessionProcess {
 		RaonSessionMessage response_message = null;
 		
 		try {
-			LOG.application().info("request  : {} ", request_message);
+			LOG.application().debug("request  : {} ", request_message);
 			SearchRequestMessage search_request = new SearchRequestMessage();
 			String user_id = request_message.getUserId().getValue();
 			
@@ -90,7 +94,7 @@ public class SessionListProcess extends AbstractSessionProcess {
 			response_message = erro_messge;
 		}
 		finally {
-			LOG.application().info("response : {} ", response_message);
+			LOG.application().debug("response : {} ", response_message);
 			
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));
 			

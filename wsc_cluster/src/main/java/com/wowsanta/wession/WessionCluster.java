@@ -71,7 +71,7 @@ public class WessionCluster implements WessionRepository<Wession> {
 		}catch (RespositoryException e) {
 			throw e;
 		}finally {
-			LOG.process().info("{} ({}): {}",session.getKey(),size(), session );	
+			LOG.process().info("{} ({})",session.getKey(),size());	
 		}
 	}
 
@@ -83,7 +83,7 @@ public class WessionCluster implements WessionRepository<Wession> {
 		}catch (RespositoryException e) {
 			throw e;
 		}finally {
-			LOG.process().info("{} : {}",key, session);	
+			LOG.process().info("{}",key);	
 		}
 		return session;
 	}
@@ -103,7 +103,7 @@ public class WessionCluster implements WessionRepository<Wession> {
 		}catch (RespositoryException e) {
 			throw e;
 		}finally {
-			LOG.process().info("{} : {}",session.getKey(), session);
+			LOG.process().info("{}",session.getKey());
 		}
 	}
 
@@ -122,7 +122,7 @@ public class WessionCluster implements WessionRepository<Wession> {
 		}catch (RespositoryException e) {
 			throw e;
 		}finally {
-			LOG.process().info("{} : {}",session.getKey(), session);
+			LOG.process().info("{}",session.getKey());
 		}
 	}
 

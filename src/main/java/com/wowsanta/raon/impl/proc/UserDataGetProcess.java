@@ -25,13 +25,17 @@ public class UserDataGetProcess extends AbstractSessionProcess {
 		setRequest(new SessionRequest(new UserDataGetRequestMessage()));
 	}
 
+	public UserDataGetProcess(RaonSessionMessage request) {
+		setRequest(new SessionRequest(request));
+	}
+
 	@Override
 	public void porcess() throws ServerException {
 		UserDataGetRequestMessage  request_message  = (UserDataGetRequestMessage) getRequest().getMessage();
 		RaonSessionMessage response_message = null;
 		
 		try {
-			LOG.application().info("request  : {} ", request_message);
+			LOG.application().debug("request  : {} ", request_message);
 			
 			String user_id      = request_message.getUserId().getValue();
 			BYTE4 index         = request_message.getSessionIndex();
@@ -82,7 +86,7 @@ public class UserDataGetProcess extends AbstractSessionProcess {
 			
 			response_message = erro_messge;
 		} finally {
-			LOG.application().info("response : {} ", response_message);
+			LOG.application().debug("response : {} ", response_message);
 			
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));
 		}

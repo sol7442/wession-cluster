@@ -16,9 +16,8 @@ import com.wowsanta.raon.impl.session.SessionResponse;
 import com.wowsanta.server.ServerException;
 
 public class HelloProcess extends AbstractSessionProcess {
-	public HelloProcess() {
-		setRequest(new SessionRequest(new HelloRequestMessage()));
-		//setResponse(new SessionResponse(new HellowResonseMessage(), getRequest().getSession()));
+	public HelloProcess(RaonSessionMessage request) {
+		setRequest(new SessionRequest(request));
 	}
 
 	@Override
@@ -27,7 +26,7 @@ public class HelloProcess extends AbstractSessionProcess {
 		RaonSessionMessage response_message = null;
 		try {
 			HelloRequestMessage request_message = (HelloRequestMessage) getRequest().getMessage();
-			LOG.application().info("request  : {} ", request_message);
+			LOG.application().debug("request  : {} ", request_message);
 			
 			HelloResonseMessage hello_message = new HelloResonseMessage();
 			hello_message.setCode(new INT(0));
@@ -43,7 +42,7 @@ public class HelloProcess extends AbstractSessionProcess {
 			
 			response_message = erro_messge;
 		}finally {
-			LOG.application().info("reponse : {} ", response_message);
+			LOG.application().debug("reponse : {} ", response_message);
 			setResponse(new SessionResponse(response_message, getRequest().getSession()));
 		}
 	}

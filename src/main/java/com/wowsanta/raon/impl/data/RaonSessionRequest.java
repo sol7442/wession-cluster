@@ -17,4 +17,5 @@ public abstract class RaonSessionRequest implements Request {
 		return new STR(bytes,idx);
 	}
 	
+	
 }
